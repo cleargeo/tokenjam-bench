@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tokenjam-bench"
+version = "0.1.0"
+description = "Benchmarking + evaluation harness that proves TokenJam's savings with executable-accuracy ground truth"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+# TokenJam is consumed as a normal published package, NOT vendored or pinned to
+# a repo checkout. `pip install -U tokenjam` pulls the latest; the bench stamps
+# whatever version resolved onto every result (see version.py).
+# Deliberately an open lower-bound constraint so daily TokenJam releases flow in
+# with a plain upgrade — `make update-tokenjam`.
+dependencies = [
+    "tokenjam>=0.5",
+    "click>=8.1",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+# Live model providers. Kept optional so the offline mock pipeline (and tests)
+# run with zero provider SDKs installed. Install what you'll actually call.
+providers = [
+    "anthropic>=0.40",
+    "openai>=1.40",
+    "google-genai>=0.3",
+]
+# Real benchmark datasets (HumanEval / GSM8K loaders). The built-in `samples`
+# benchmark needs none of this and runs offline.
+datasets = [
+    "datasets>=2.0",
+    "human-eval>=1.0",
+]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+tjbench = "cli:cli"
+
+# Flat layout: the bench modules live at the repo root (no inner package dir).
+# Subpackages are real packages; the loose top-level modules are included
+# explicitly so the wheel carries them too.
+[tool.hatch.build.targets.wheel]
+packages = ["agents", "benchmarks", "models"]
+include = ["*.py"]
+
+# Put the repo root on sys.path for the test run so `from stats import ...`
+# resolves under the flat layout (pytest >= 7).
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
