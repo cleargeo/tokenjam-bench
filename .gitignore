@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+# Proof artifacts are generated; keep the dir, not the runs.
+results/*.json
+!results/.gitkeep
+
+# macOS
+.DS_Store
