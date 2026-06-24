@@ -24,6 +24,27 @@ benchmark tasks ─▶ run on ORIGINAL model ─▶ score (pass/fail) + cost
                 ─▶ proof: Δaccuracy (objective) + Δcost, stamped to tokenjam vX.Y.Z
 ```
 
+## Documentation
+
+Full documentation lives in [`docs/`](docs/):
+
+| Doc | Description |
+|-----|-------------|
+| [docs/README.md](docs/README.md) | Documentation index with links to everything |
+| [docs/overview.md](docs/overview.md) | What this project is and why it exists |
+| [docs/architecture.md](docs/architecture.md) | System design, data flow, module relationships |
+| [docs/quickstart.md](docs/quickstart.md) | Get running in 5 minutes |
+| [docs/cli-reference.md](docs/cli-reference.md) | Complete `tjbench` command reference |
+| [docs/pipelines.md](docs/pipelines.md) | Single-shot and agent proof pipelines |
+| [docs/models.md](docs/models.md) | Model client adapters and protocols |
+| [docs/benchmarks.md](docs/benchmarks.md) | Available benchmarks and scoring |
+| [docs/agents.md](docs/agents.md) | Multi-turn agent execution framework |
+| [docs/statistics.md](docs/statistics.md) | Statistical methods used for proof |
+| [docs/cost-pricing.md](docs/cost-pricing.md) | How costs are computed |
+| [docs/tokenjam-integration.md](docs/tokenjam-integration.md) | How we consume TokenJam |
+| [docs/development.md](docs/development.md) | Contributing, testing, extending |
+| [docs/api-reference.md](docs/api-reference.md) | Module-level API documentation |
+
 ## TokenJam changes every day — that's the design center
 
 TokenJam is consumed as a **published package**, never vendored. To test a new
@@ -76,3 +97,9 @@ preserved" claim. Reports record `n`, flag `--mock` runs as illustrative, and
 flag when cost fell back to TokenJam's default placeholder rates. Executing
 model-generated code (HumanEval) happens in a timed subprocess; run only trusted
 benchmark suites on a machine you control.
+
+## Related Projects
+
+- **[TokenJam](https://github.com/HoomanDigital/tokenjam)** — The main cost-optimization and observability platform
+- **[TokenJam Docs](https://github.com/HoomanDigital/tokenjam/tree/main/docs)** — TokenJam's own documentation
+- **[TokenJam Python SDK](https://github.com/HoomanDigital/tokenjam/tree/main/tokenjam/sdk)** — SDK for instrumenting agents
