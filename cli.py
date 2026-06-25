@@ -222,6 +222,50 @@ def cmd_report(artifact: str, out: str | None, open_browser: bool) -> None:
         webbrowser.open(path.as_uri())
 
 
+@cli.command("replay")
+@click.option("--telemetry", required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help="Exported TokenJam telemetry (.jsonl/.json) or a TokenJam .duckdb (read-only).")
+@click.option("--candidate", default=None,
+              help="Candidate model (default: TokenJam's downgrade for the original).")
+@click.option("--judge", "judge_backend", default=None,
+              type=click.Choice(["mock", "openai", "deepseek"]),
+              help="Equivalence judge (default: TJBENCH_JUDGE env, else mock).")
+@click.option("--judge-metric", default="correctness", show_default=True)
+@click.option("--limit", type=int, default=None, help="Cap number of replayed turns.")
+@click.option("--samples", type=int, default=1, show_default=True)
+@click.option("--temperature", type=float, default=0.0, show_default=True)
+@click.option("--control", is_flag=True,
+              help="Also re-run the original model (McNemar vs its own run-to-run noise).")
+@click.option("--max-tokens", type=int, default=1024, show_default=True)
+@click.option("--mock", is_flag=True, help="Offline run (no provider SDKs/keys/spend).")
+@click.option("--mock-candidate-accuracy", type=float, default=0.85, show_default=True)
+@click.option("--out", default="results", show_default=True)
+@click.option("--html", "make_html", is_flag=True,
+              help="Also write a self-contained HTML report.")
+@click.option("--json", "output_json", is_flag=True, help="Emit machine-readable JSON.")
+def cmd_replay(telemetry: str, candidate: str | None, judge_backend: str | None,
+               judge_metric: str, limit: int | None, samples: int, temperature: float,
+               control: bool, max_tokens: int, mock: bool, mock_candidate_accuracy: float,
+               out: str, make_html: bool, output_json: bool) -> None:
+    """Replay real TokenJam telemetry: does the cheaper model stay equivalent?"""
+    from replay_pipeline import run_replay_proof
+    try:
+        result = run_replay_proof(
+            telemetry_path=telemetry, candidate_spec=candidate, judge_backend=judge_backend,
+            judge_metric=judge_metric, limit=limit, samples=samples, temperature=temperature,
+            control=control, max_tokens=max_tokens, mock=mock,
+            mock_candidate_accuracy=mock_candidate_accuracy,
+        )
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+    path = result.write(out)
+    _render_proof(result, path, output_json)
+    if make_html and not output_json:
+        hp = write_html_report(result.to_dict(), out)
+        console.print(f"HTML report: [dim]{hp}[/dim]")
+
+
 @cli.command("serve")
 @click.option("--dir", "directory", default="results", show_default=True,
               help="Directory of proof artifacts to serve.")
