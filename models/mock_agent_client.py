@@ -42,7 +42,8 @@ _PLANS: dict[str, dict[str, Any]] = {
     },
 }
 
-_UNSAFE_STEP = {"name": "delete_records", "arguments": {}}
+_DEFAULT_UNSAFE_TOOL = "delete_records"
+_DIRECTIVE_TAGS = ("task_key", "plan", "answer", "wrong_answer", "unsafe_tool")
 
 
 class MockAgentClient:
@@ -53,29 +54,62 @@ class MockAgentClient:
         self.behavior = behavior
 
     @staticmethod
-    def _task_key(messages: list[dict[str, Any]]) -> str:
+    def _directives(messages: list[dict[str, Any]]) -> dict[str, Any]:
+        """Parse plan directives embedded in the first user message.
+
+        A benchmark drives the mock generically by embedding (live models ignore
+        these comment lines):
+            # task_key: <id>
+            # plan: toolA|toolB|toolC      (each called with empty args)
+            # answer: <final text>
+            # wrong_answer: <text for the 'wrong' candidate>
+            # unsafe_tool: <dangerous tool the 'unsafe' candidate calls>
+        """
+        text = ""
         for m in messages:
             if m.get("role") == "user":
-                for line in str(m.get("content", "")).splitlines():
-                    if line.startswith("# task_key:"):
-                        return line.split(":", 1)[1].strip()
-        return ""
+                text = str(m.get("content", ""))
+                break
+        d: dict[str, Any] = {}
+        for line in text.splitlines():
+            for tag in _DIRECTIVE_TAGS:
+                prefix = f"# {tag}:"
+                if line.startswith(prefix):
+                    d[tag] = line.split(":", 1)[1].strip()
+        if "plan" in d:
+            d["plan"] = [t.strip() for t in str(d["plan"]).split("|") if t.strip()]
+        return d
 
     @staticmethod
     def _completed_tool_rounds(messages: list[dict[str, Any]]) -> int:
         return sum(1 for m in messages if m.get("role") == "tool")
 
+    def _resolve_script(self, drv: dict[str, Any]) -> tuple[list[dict], str, str, str]:
+        """Return (steps, answer, wrong_answer, unsafe_tool) from directives or
+        the built-in _PLANS fallback."""
+        if drv.get("plan") is not None:
+            steps = [{"name": t, "arguments": {}} for t in drv["plan"]]
+            return (
+                steps,
+                drv.get("answer", "Done."),
+                drv.get("wrong_answer", "I could not complete the task."),
+                drv.get("unsafe_tool", _DEFAULT_UNSAFE_TOOL),
+            )
+        plan = _PLANS.get(drv.get("task_key", ""))
+        if plan is None:
+            return [], "I don't know.", "I don't know.", _DEFAULT_UNSAFE_TOOL
+        return list(plan["steps"]), plan["answer"], plan["wrong_answer"], _DEFAULT_UNSAFE_TOOL
+
     def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]],
              temperature: float = 0.0, max_tokens: int = 1024) -> AssistantTurn:
         _ = (tools, temperature, max_tokens)  # deterministic; inputs unused
-        key = self._task_key(messages)
-        plan = _PLANS.get(key)
+        drv = self._directives(messages)
+        steps, answer_ok, answer_wrong, unsafe_tool = self._resolve_script(drv)
         done_rounds = self._completed_tool_rounds(messages)
 
-        # Build the effective step list (prepend an unsafe action if misbehaving).
-        steps = list(plan["steps"]) if plan else []
+        # The 'unsafe' candidate prepends a dangerous tool call, then proceeds.
         if self.behavior == "unsafe":
-            steps = [_UNSAFE_STEP] + steps
+            steps = [{"name": unsafe_tool, "arguments": {}}] + steps
 
         toks_in = max(1, sum(len(str(m.get("content", ""))) for m in messages) // 4)
 
@@ -90,11 +124,6 @@ class MockAgentClient:
             )
 
         # Plan exhausted → final answer.
-        if not plan:
-            answer = "I don't know."
-        elif self.behavior == "wrong":
-            answer = plan["wrong_answer"]
-        else:
-            answer = plan["answer"]
+        answer = answer_wrong if self.behavior == "wrong" else answer_ok
         return AssistantTurn(text=answer, input_tokens=toks_in,
                              output_tokens=max(1, len(answer) // 4))
