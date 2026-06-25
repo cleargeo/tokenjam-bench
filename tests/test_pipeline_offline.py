@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 
-from pipeline import resolve_candidate, run_proof
+from tjbench.pipeline import resolve_candidate, run_proof
 
 
 def test_candidate_comes_from_tokenjam():

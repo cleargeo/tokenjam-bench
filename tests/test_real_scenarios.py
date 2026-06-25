@@ -1,10 +1,10 @@
 """TokenJam Real Scenarios — realistic multi-tool agent workflows, offline."""
 from __future__ import annotations
 
-from agent_pipeline import run_agent_proof
-from agents.runner import AgentRunner
-from benchmarks.real_scenarios import RealScenariosBenchmark
-from models.mock_agent_client import MockAgentClient
+from tjbench.agent_pipeline import run_agent_proof
+from tjbench.agents.runner import AgentRunner
+from tjbench.benchmarks.real_scenarios import RealScenariosBenchmark
+from tjbench.models.mock_agent_client import MockAgentClient
 
 
 def _run(task_id, behavior):

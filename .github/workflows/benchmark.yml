@@ -45,7 +45,7 @@ jobs:
         run: python -c "import importlib.metadata as m; print('tokenjam', m.version('tokenjam'))"
 
       - name: Run benchmarks (offline always; live if the key secret is set)
-        run: python ci_benchmark.py
+        run: python -m tjbench.ci_benchmark
 
       - name: Upload version-stamped artifacts
         if: always()

@@ -1,8 +1,8 @@
 """HTML report generator — self-contained, offline, faithful to the proof dict."""
 from __future__ import annotations
 
-from pipeline import run_proof
-from report_html import render_html_from_dict, write_html_report
+from tjbench.pipeline import run_proof
+from tjbench.report_html import render_html_from_dict, write_html_report
 
 
 def _dict():

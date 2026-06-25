@@ -5,10 +5,10 @@ import json
 
 import pytest
 
-from judge import MockJudge
-from models import Completion
-from replay import dominant_model, load_telemetry
-from replay_pipeline import run_replay_proof
+from tjbench.judge import MockJudge
+from tjbench.models import Completion
+from tjbench.replay import dominant_model, load_telemetry
+from tjbench.replay_pipeline import run_replay_proof
 
 
 class _FixedCandidate:

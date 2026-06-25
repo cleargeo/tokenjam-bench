@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from history import BenchmarkHistory, run_id_for
+from tjbench.history import BenchmarkHistory, run_id_for
 
 
 def _proof(benchmark="humaneval", version="0.5.1", created_at=100.0,

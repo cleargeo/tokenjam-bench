@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from dashboard import _DASHBOARD_HTML, scan_runs
+from tjbench.dashboard import _DASHBOARD_HTML, scan_runs
 
 
 def _artifact(benchmark="humaneval", created_at=0.0, verdict="no_significant_regression"):
@@ -35,8 +35,8 @@ def test_scan_empty_dir_is_safe(tmp_path):
 
 
 def test_history_summary_empty_and_populated(tmp_path):
-    from dashboard import history_summary
-    from history import BenchmarkHistory
+    from tjbench.dashboard import history_summary
+    from tjbench.history import BenchmarkHistory
 
     db = tmp_path / "history.duckdb"
     assert history_summary(db)["available"] is False        # no DB yet

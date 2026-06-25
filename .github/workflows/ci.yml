@@ -22,4 +22,4 @@ jobs:
       - name: Tests (all offline / mock)
         run: pytest -q
       - name: Offline proof smoke (pipeline produces a valid stamped proof)
-        run: python ci_benchmark.py
+        run: python -m tjbench.ci_benchmark

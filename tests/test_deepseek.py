@@ -9,13 +9,13 @@ from pathlib import Path
 
 import pytest
 
-from judge import get_judge
-from models.openai_compatible import (
+from tjbench.judge import get_judge
+from tjbench.models.openai_compatible import (
     PROVIDERS,
     OpenAICompatibleClient,
     is_openai_compatible,
 )
-from models.registry import get_client
+from tjbench.models.registry import get_client
 
 
 def test_deepseek_is_a_registered_openai_compatible_provider():

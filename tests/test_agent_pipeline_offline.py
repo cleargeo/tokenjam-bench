@@ -3,7 +3,7 @@ machinery as the single-shot path, and that the safety gate flows through to a
 measurable pass-rate regression."""
 from __future__ import annotations
 
-from agent_pipeline import run_agent_proof
+from tjbench.agent_pipeline import run_agent_proof
 
 
 def test_ok_candidate_matches_original():

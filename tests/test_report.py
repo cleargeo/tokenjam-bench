@@ -2,7 +2,7 @@
 the per-token advantage — the report must surface it."""
 from __future__ import annotations
 
-from report import ProofResult, ProofStats
+from tjbench.report import ProofResult, ProofStats
 
 
 def _stats() -> ProofStats:

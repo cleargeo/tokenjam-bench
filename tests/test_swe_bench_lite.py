@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 
-from benchmarks.swe_bench_lite import SWEBenchLiteBenchmark, SWEBenchTask
-from agents.trace import AgentTrace, TurnRecord, ToolCallRecord
+from tjbench.benchmarks.swe_bench_lite import SWEBenchLiteBenchmark, SWEBenchTask
+from tjbench.agents.trace import AgentTrace, TurnRecord, ToolCallRecord
 
 
 class TestSWEBenchLiteBenchmark:
@@ -251,7 +251,7 @@ class TestSWEBenchToolSet:
 
     def test_view_file(self, tmp_path):
         """view should read a file with line numbers."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "test.py").write_text("line1\nline2\nline3")
@@ -263,7 +263,7 @@ class TestSWEBenchToolSet:
 
     def test_view_nonexistent_file(self, tmp_path):
         """view should error for missing files."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         result = toolset.view({"path": "missing.py"})
@@ -272,7 +272,7 @@ class TestSWEBenchToolSet:
 
     def test_view_range(self, tmp_path):
         """view_range should show only specified lines."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "test.py").write_text("line1\nline2\nline3\nline4\nline5")
@@ -287,7 +287,7 @@ class TestSWEBenchToolSet:
 
     def test_str_replace_exact_match(self, tmp_path):
         """str_replace should replace exact string once."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "test.py").write_text("def hello():\n    return 'world'")
@@ -306,7 +306,7 @@ class TestSWEBenchToolSet:
 
     def test_str_replace_no_match(self, tmp_path):
         """str_replace should error if old_str not found."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "test.py").write_text("def hello():\n    return 'world'")
@@ -321,7 +321,7 @@ class TestSWEBenchToolSet:
 
     def test_str_replace_multiple_matches(self, tmp_path):
         """str_replace should error if old_str appears multiple times."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "test.py").write_text("x = 1\nx = 1\nx = 1")
@@ -336,7 +336,7 @@ class TestSWEBenchToolSet:
 
     def test_create_file(self, tmp_path):
         """create should create a new file."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         result = toolset.create({
@@ -350,7 +350,7 @@ class TestSWEBenchToolSet:
 
     def test_create_existing_file(self, tmp_path):
         """create should error if file already exists."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "existing.py").write_text("x = 1")
@@ -364,7 +364,7 @@ class TestSWEBenchToolSet:
 
     def test_insert_after_line(self, tmp_path):
         """insert should add text after specified line."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         (tmp_path / "test.py").write_text("line1\nline2\nline3")
@@ -384,7 +384,7 @@ class TestSWEBenchToolSet:
 
     def test_bash_command(self, tmp_path):
         """bash should run shell commands in workspace."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         result = toolset.bash({"command": "echo hello", "timeout": 5})
@@ -393,7 +393,7 @@ class TestSWEBenchToolSet:
 
     def test_bash_timeout(self, tmp_path):
         """bash should timeout long-running commands."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         result = toolset.bash({"command": "sleep 10", "timeout": 1})
@@ -402,7 +402,7 @@ class TestSWEBenchToolSet:
 
     def test_path_traversal_blocked(self, tmp_path):
         """Path traversal outside workspace should be blocked."""
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(tmp_path)
         result = toolset.view({"path": "../../../etc/passwd"})
@@ -412,7 +412,7 @@ class TestSWEBenchToolSet:
     def test_tool_specs(self):
         """get_tool_specs should return all tool definitions."""
         from pathlib import Path
-        from agents.swe_bench_tools import SWEBenchToolSet
+        from tjbench.agents.swe_bench_tools import SWEBenchToolSet
         
         toolset = SWEBenchToolSet(Path("/tmp"))
         specs = toolset.get_tool_specs()

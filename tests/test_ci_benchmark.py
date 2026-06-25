@@ -1,7 +1,7 @@
 """Continuous-benchmark orchestration (P2) — offline path."""
 from __future__ import annotations
 
-from ci_benchmark import live_enabled, render_summary, run_ci
+from tjbench.ci_benchmark import live_enabled, render_summary, run_ci
 
 
 def test_offline_run_produces_proofs_and_summary(tmp_path):

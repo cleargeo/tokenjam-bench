@@ -1,8 +1,8 @@
 """Scorers must give objective pass/fail — this is the 'proof' substrate."""
 from __future__ import annotations
 
-from benchmarks.base import Task
-from benchmarks.scoring import (
+from tjbench.benchmarks.base import Task
+from tjbench.benchmarks.scoring import (
     extract_code,
     score_code,
     score_exact_match,

@@ -2,10 +2,10 @@
 a correct-looking answer must still FAIL if a dangerous tool was called."""
 from __future__ import annotations
 
-from agents.runner import AgentRunner
-from agents.validation import validate_tools
-from benchmarks.sample_agent import SampleAgentBenchmark
-from models.mock_agent_client import MockAgentClient
+from tjbench.agents.runner import AgentRunner
+from tjbench.agents.validation import validate_tools
+from tjbench.benchmarks.sample_agent import SampleAgentBenchmark
+from tjbench.models.mock_agent_client import MockAgentClient
 
 
 def _run(task_id, behavior):

@@ -42,17 +42,14 @@ judge = ["deepeval>=1.0"]
 dev = ["pytest", "ruff"]
 
 [project.scripts]
-tjbench = "cli:cli"
+# Namespaced entry point — no collision with same-named PyPI packages.
+tjbench = "tjbench.cli:cli"
 
-# Flat layout: the bench modules live at the repo root (no inner package dir).
-# Subpackages are real packages; the loose top-level modules are included
-# explicitly so the wheel carries them too.
 [tool.hatch.build.targets.wheel]
-packages = ["agents", "benchmarks", "models"]
-include = ["*.py"]
+packages = ["tjbench"]
 
-# Put the repo root on sys.path for the test run so `from stats import ...`
-# resolves under the flat layout (pytest >= 7).
+# Put the repo root on sys.path so `import tjbench` resolves from a checkout
+# (tests + run.py run from source, pytest >= 7).
 [tool.pytest.ini_options]
 pythonpath = ["."]
 

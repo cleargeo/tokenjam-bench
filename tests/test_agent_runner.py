@@ -1,9 +1,9 @@
 """AgentRunner + trace: the multi-turn loop must execute tools and record them."""
 from __future__ import annotations
 
-from agents.runner import AgentRunner
-from benchmarks.sample_agent import SampleAgentBenchmark
-from models.mock_agent_client import MockAgentClient
+from tjbench.agents.runner import AgentRunner
+from tjbench.benchmarks.sample_agent import SampleAgentBenchmark
+from tjbench.models.mock_agent_client import MockAgentClient
 
 
 def _task(task_id):
@@ -40,7 +40,7 @@ def test_max_turns_guard_stops_runaway():
         model = "loop"
 
         def chat(self, messages, tools, temperature=0.0, max_tokens=1024):
-            from models.tool_calling import AssistantTurn, ToolCall
+            from tjbench.models.tool_calling import AssistantTurn, ToolCall
             return AssistantTurn(tool_calls=[ToolCall("x", "add", {"a": 1, "b": 1})],
                                  input_tokens=1, output_tokens=1)
 

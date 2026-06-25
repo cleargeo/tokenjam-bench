@@ -1,7 +1,7 @@
 """Statistical primitives — the layer that turns a pass-rate delta into a claim."""
 from __future__ import annotations
 
-from stats import (
+from tjbench.stats import (
     mcnemar_exact,
     paired_delta_ci,
     pass_at_k,

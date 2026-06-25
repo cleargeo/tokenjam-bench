@@ -1,7 +1,7 @@
 """The version stamp is the anchor for 'TokenJam changes every day'."""
 from __future__ import annotations
 
-from version import resolve_tokenjam_build
+from tjbench.version import resolve_tokenjam_build
 
 
 def test_resolves_installed_tokenjam_version():

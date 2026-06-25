@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from matrix import (
+from tjbench.matrix import (
     _version_key,
     build_series,
     load_artifacts,

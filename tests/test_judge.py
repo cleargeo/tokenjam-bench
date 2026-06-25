@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import pytest
 
-from judge import JudgeCase, MockJudge, get_judge
-from pipeline import run_proof
+from tjbench.judge import JudgeCase, MockJudge, get_judge
+from tjbench.pipeline import run_proof
 
 
 def test_mock_judge_passes_matching_output():
