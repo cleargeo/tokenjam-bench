@@ -79,28 +79,38 @@ class MockJudge:
         )
 
 
+# Judge backends. 'mock' is offline; the DeepEval-backed ones name the
+# OpenAI-compatible provider that supplies the judge model. 'deepeval' is a
+# back-compat alias for 'openai'.
+_JUDGE_PROVIDER = {"deepeval": "openai", "openai": "openai", "deepseek": "deepseek"}
+
+
 def get_judge(backend: str = "mock", metric: str = "correctness",
-              threshold: float = 0.5, model: str = "gpt-4o") -> Judge:
-    """Resolve a judge backend. 'mock' is offline; 'deepeval' is key-gated."""
+              threshold: float = 0.5, model: str | None = None) -> Judge:
+    """Resolve a judge backend. 'mock' is offline; 'openai'/'deepseek'/'deepeval'
+    are DeepEval-backed and key-gated."""
     if metric not in JUDGE_METRICS:
         raise ValueError(f"Unknown metric '{metric}'. Available: {JUDGE_METRICS}")
     if backend == "mock":
         return MockJudge(metric=metric, threshold=threshold)
-    if backend == "deepeval":
+    if backend in _JUDGE_PROVIDER:
         from deepeval_judge import DeepEvalJudge
-        return DeepEvalJudge(metric=metric, threshold=threshold, model=model)
-    raise ValueError(f"Unknown judge backend '{backend}'. Use 'mock' or 'deepeval'.")
+        return DeepEvalJudge(metric=metric, threshold=threshold, model=model,
+                             provider=_JUDGE_PROVIDER[backend])
+    raise ValueError(
+        f"Unknown judge backend '{backend}'. Use 'mock', 'openai', or 'deepseek'."
+    )
 
 
 def judge_from_env() -> Judge:
     """Build the judge from TJBENCH_JUDGE* env vars (default: offline mock).
 
-      TJBENCH_JUDGE=mock|deepeval   TJBENCH_JUDGE_METRIC=correctness
-      TJBENCH_JUDGE_THRESHOLD=0.5   TJBENCH_JUDGE_MODEL=gpt-4o
+      TJBENCH_JUDGE=mock|openai|deepseek   TJBENCH_JUDGE_METRIC=correctness
+      TJBENCH_JUDGE_THRESHOLD=0.5          TJBENCH_JUDGE_MODEL=<override>
     """
     return get_judge(
         backend=os.environ.get("TJBENCH_JUDGE", "mock"),
         metric=os.environ.get("TJBENCH_JUDGE_METRIC", "correctness"),
         threshold=float(os.environ.get("TJBENCH_JUDGE_THRESHOLD", "0.5")),
-        model=os.environ.get("TJBENCH_JUDGE_MODEL", "gpt-4o"),
+        model=os.environ.get("TJBENCH_JUDGE_MODEL"),
     )
