@@ -25,7 +25,10 @@ class GSM8KBenchmark:
                 "GSM8K needs the datasets extra. Run "
                 "`pip install 'tokenjam-bench[datasets]'`."
             ) from exc
-        self._ds = load_dataset("gsm8k", "main", split="test")
+        try:
+            self._ds = load_dataset("openai/gsm8k", "main", split="test")
+        except (ValueError, FileNotFoundError):
+            self._ds = load_dataset("gsm8k", "main", split="test")
 
     def tasks(self, limit: int | None = None) -> list[Task]:
         rows = self._ds if limit is None else self._ds.select(range(min(limit, len(self._ds))))
