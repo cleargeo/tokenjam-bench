@@ -4,7 +4,7 @@
   <img src="Assets/ChatGPT Image Jun 25, 2026, 05_19_19 PM.png" alt="tokenjam-bench" width="200">
 </picture>
 
-### Proves the effect of TokenJam's recommendations on cost AND accuracy using executable benchmarks as objective ground truth.
+Proves the effect of TokenJam's recommendations on cost AND accuracy using executable benchmarks as objective ground truth.
 
 [![CI](https://github.com/HoomanDigital/tokenjam-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/HoomanDigital/tokenjam-benchmark/actions)
 [![Tests](https://img.shields.io/badge/tests-75_passing-brightgreen?labelColor=0d1117)](tests/)
