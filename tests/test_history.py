@@ -78,3 +78,63 @@ def test_configs(tmp_path):
         h.record(_proof(benchmark="judged", created_at=2))
         cfgs = {c["benchmark"] for c in h.configs()}
         assert cfgs == {"humaneval", "judged"}
+
+
+def _pair(benchmark, version, ca, orig, origr, cand, candr, verdict="no_significant_regression"):
+    return {"benchmark": benchmark, "tokenjam_version": version, "created_at": ca,
+            "original_model": orig, "candidate_model": cand,
+            "original_pass_rate": origr, "candidate_pass_rate": candr,
+            "accuracy_delta_pp": (candr - origr) * 100, "cost_delta_pct": -80.0,
+            "original_cost_usd": 0.02, "candidate_cost_usd": 0.004,
+            "stats": {"verdict": verdict}}
+
+
+def test_leaderboard_ranks_models_by_latest_pass_rate(tmp_path):
+    with BenchmarkHistory(tmp_path / "h.duckdb") as h:
+        h.record(_pair("humaneval", "0.5.1", 1, "a:opus", 0.95, "a:haiku", 0.90))
+        h.record(_pair("humaneval", "0.5.2", 2, "a:opus", 0.95, "a:haiku", 0.85))  # latest haiku
+        h.record(_pair("humaneval", "0.5.1", 3, "o:gpt5", 0.96, "o:mini", 0.93))
+        lb = h.leaderboard("humaneval")
+        ranked = [(r["model"], round(r["pass_rate"], 2)) for r in lb]
+        assert ranked[0] == ("o:gpt5", 0.96)             # top
+        assert ("a:haiku", 0.85) in ranked                # latest haiku (not 0.90)
+
+
+def test_provider_matrix_aggregates_per_model(tmp_path):
+    with BenchmarkHistory(tmp_path / "h.duckdb") as h:
+        h.record(_pair("humaneval", "0.5.1", 1, "a:opus", 0.95, "a:haiku", 0.90))
+        h.record(_pair("judged", "0.5.1", 2, "a:opus", 0.95, "a:haiku", 0.80))
+        by_model = {r["model"]: r for r in h.provider_matrix()}
+        assert by_model["a:opus"]["runs"] == 2
+        assert by_model["a:haiku"]["benchmarks"] == 2
+        assert abs(by_model["a:haiku"]["avg_accuracy"] - 0.85) < 1e-9
+
+
+def test_version_summary_counts_regressions_correctly(tmp_path):
+    with BenchmarkHistory(tmp_path / "h.duckdb") as h:
+        h.record(_pair("humaneval", "0.5.1", 1, "a:opus", 0.95, "a:haiku", 0.90))
+        h.record(_pair("humaneval", "0.5.2", 2, "a:opus", 0.95, "a:haiku", 0.70,
+                       verdict="significant_regression"))
+        by_v = {r["version"]: r for r in h.version_summary()}
+        assert by_v["0.5.1"]["regressions"] == 0
+        assert by_v["0.5.2"]["regressions"] == 1
+        # 'no_significant_regression' must NOT count as a regression (substring trap)
+        assert by_v["0.5.1"]["runs"] == 1
+
+
+def test_regressions_timeline_only_flags_regressions(tmp_path):
+    with BenchmarkHistory(tmp_path / "h.duckdb") as h:
+        h.record(_pair("humaneval", "0.5.1", 1, "a:opus", 0.95, "a:haiku", 0.90))
+        h.record(_pair("humaneval", "0.5.2", 2, "a:opus", 0.95, "a:haiku", 0.6,
+                       verdict="significant_regression"))
+        regs = h.regressions()
+        assert len(regs) == 1 and regs[0]["verdict"] == "significant_regression"
+
+
+def test_read_only_mode_can_query(tmp_path):
+    db = tmp_path / "h.duckdb"
+    with BenchmarkHistory(db) as h:                       # create + write
+        h.record(_proof())
+    with BenchmarkHistory(db, read_only=True) as ro:      # read-only open
+        assert ro.count() == 1
+        assert ro.versions() == ["0.5.1"]
