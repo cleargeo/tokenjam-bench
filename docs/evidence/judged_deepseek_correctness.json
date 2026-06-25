@@ -1,0 +1,111 @@
+{
+  "tokenjam_version": "0.5.1",
+  "tokenjam_location": "/Users/sudharsan/.local/pipx/venvs/tokenjam/lib/python3.14/site-packages/tokenjam/__init__.py",
+  "benchmark": "judged",
+  "original_model": "deepseek:deepseek-reasoner",
+  "candidate_model": "deepseek:deepseek-chat",
+  "recommended_by": "explicit --candidate override",
+  "n_tasks": 5,
+  "original_pass": 2,
+  "candidate_pass": 2,
+  "original_cost_usd": 0.00139957,
+  "candidate_cost_usd": 0.00034508,
+  "original_output_tokens": 623,
+  "candidate_output_tokens": 298,
+  "mock": false,
+  "priced_with_defaults": false,
+  "stats": {
+    "samples_per_task": 1,
+    "original_ci_pp": [
+      11.76,
+      76.93
+    ],
+    "candidate_ci_pp": [
+      11.76,
+      76.93
+    ],
+    "delta_ci_pp": [
+      0.0,
+      0.0
+    ],
+    "mcnemar_b": 0,
+    "mcnemar_c": 0,
+    "mcnemar_p_value": 1.0,
+    "significant": false,
+    "alpha": 0.05,
+    "verdict": "insufficient_evidence",
+    "original_pass_at_1": 0.4,
+    "candidate_pass_at_1": 0.4
+  },
+  "created_at": 1782362627.2308009,
+  "tasks": [
+    {
+      "task_id": "judged/refund-policy",
+      "samples": 1,
+      "original_passes": 0,
+      "candidate_passes": 0,
+      "original_cost_usd": 0.00037999,
+      "candidate_cost_usd": 0.0001622,
+      "original_output_tokens": 171,
+      "candidate_output_tokens": 145,
+      "original_detail": "deepeval:correctness@deepseek:deepseek-chat score=0.00 (>= 0.5) \u2014 The actual output does not provide the specific refund window of 30 days as stat",
+      "candidate_detail": "deepeval:correctness@deepseek:deepseek-chat score=0.00 (>= 0.5) \u2014 The actual output does not provide the specific refund window of 30 days as in t"
+    },
+    {
+      "task_id": "judged/capital",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.00012212,
+      "candidate_cost_usd": 1.067e-05,
+      "original_output_tokens": 53,
+      "candidate_output_tokens": 7,
+      "original_detail": "deepeval:correctness@deepseek:deepseek-chat score=1.00 (>= 0.5) \u2014 The actual output exactly matches the expected output, with no inaccuracies, mis",
+      "candidate_detail": "deepeval:correctness@deepseek:deepseek-chat score=1.00 (>= 0.5) \u2014 The actual output exactly matches the expected output, with no inaccuracies, mis"
+    },
+    {
+      "task_id": "judged/retry-summary",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.00020536,
+      "candidate_cost_usd": 2.383e-05,
+      "original_output_tokens": 89,
+      "candidate_output_tokens": 17,
+      "original_detail": "deepeval:correctness@deepseek:deepseek-chat score=1.00 (>= 0.5) \u2014 The actual output conveys the same meaning as the expected output, with only a m",
+      "candidate_detail": "deepeval:correctness@deepseek:deepseek-chat score=1.00 (>= 0.5) \u2014 The actual output states 'attempted the task five times' and 'ultimately failed'"
+    },
+    {
+      "task_id": "judged/shipping",
+      "samples": 1,
+      "original_passes": 0,
+      "candidate_passes": 0,
+      "original_cost_usd": 0.0004988,
+      "candidate_cost_usd": 0.00010637,
+      "original_output_tokens": 225,
+      "candidate_output_tokens": 94,
+      "original_detail": "deepeval:correctness@deepseek:deepseek-chat score=0.20 (>= 0.5) \u2014 The actual output provides a general overview of shipping times varying by selle",
+      "candidate_detail": "deepeval:correctness@deepseek:deepseek-chat score=0.20 (>= 0.5) \u2014 The actual output adds caveats about lacking location and shipping service detai"
+    },
+    {
+      "task_id": "judged/define-llm",
+      "samples": 1,
+      "original_passes": 0,
+      "candidate_passes": 0,
+      "original_cost_usd": 0.0001933,
+      "candidate_cost_usd": 4.201e-05,
+      "original_output_tokens": 85,
+      "candidate_output_tokens": 35,
+      "original_detail": "deepeval:correctness@deepseek:deepseek-chat score=0.20 (>= 0.5) \u2014 The actual output describes LLMs as deep learning systems for generating and und",
+      "candidate_detail": "deepeval:correctness@deepseek:deepseek-chat score=0.30 (>= 0.5) \u2014 The actual output describes LLMs as AI systems trained to generate, understand, "
+    }
+  ],
+  "original_pass_rate": 0.4,
+  "candidate_pass_rate": 0.4,
+  "accuracy_delta_pp": 0.0,
+  "cost_delta_pct": -75.34,
+  "regressions": 0,
+  "output_token_inflation": 0.478,
+  "token_inflation_flag": false,
+  "headline": "judged (n=5, k=1) \u00b7 tokenjam 0.5.1: deepseek:deepseek-reasoner \u2192 deepseek:deepseek-chat \u00b7 \u0394cost -75.3% (measured) \u00b7 \u0394pass-rate +0.0pp [95% CI +0.0, +0.0] \u00b7 McNemar p=1.000 \u2192 insufficient_evidence"
+}
