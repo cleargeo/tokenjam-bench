@@ -7,6 +7,8 @@ __pycache__/
 # Proof artifacts are generated; keep the dir, not the runs.
 results/*.json
 results/*.html
+results/*.duckdb
+results/*.duckdb.wal
 !results/.gitkeep
 
 # DeepEval local cache/config (created on a live judge run)
