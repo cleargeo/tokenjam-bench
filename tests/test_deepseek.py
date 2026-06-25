@@ -58,7 +58,8 @@ def test_deepseek_judge_backend_constructs_lazily():
 
 def test_no_api_key_is_committed_in_the_repo():
     root = Path(__file__).resolve().parent.parent
-    skip = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "results", ".venv"}
+    skip = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "results",
+            ".venv", ".deepeval"}
     key_re = re.compile(r"sk-[A-Za-z0-9]{16,}")
     offenders = []
     for p in root.rglob("*"):

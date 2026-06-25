@@ -6,7 +6,12 @@ __pycache__/
 .venv/
 # Proof artifacts are generated; keep the dir, not the runs.
 results/*.json
+results/*.html
 !results/.gitkeep
+
+# DeepEval local cache/config (created on a live judge run)
+.deepeval/
+.deepeval-cache.json
 
 # macOS
 .DS_Store
