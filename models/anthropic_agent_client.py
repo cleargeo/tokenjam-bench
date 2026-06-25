@@ -39,10 +39,12 @@ class AnthropicAgentClient:
     @staticmethod
     def _to_anthropic_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
+        from models.openai_compatible import strip_mock_directives
         for m in messages:
             role = m.get("role")
             if role == "user":
-                out.append({"role": "user", "content": m.get("content", "")})
+                # Strip mock-only scaffolding so live models never see the plan.
+                out.append({"role": "user", "content": strip_mock_directives(m.get("content", ""))})
             elif role == "assistant":
                 content: list[dict[str, Any]] = []
                 if m.get("content"):

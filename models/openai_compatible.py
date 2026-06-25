@@ -131,6 +131,10 @@ class OpenAICompatibleAgentClient:
                                  "function": {"name": tc.name,
                                               "arguments": json.dumps(tc.arguments)}}
                                 for tc in m["tool_calls"]]})
+            elif role == "user":
+                # Strip mock-only scaffolding (# plan:, …) so live models never
+                # see the scripted plan; tool outputs carry no such lines.
+                out.append({"role": "user", "content": strip_mock_directives(m.get("content", ""))})
             else:
                 out.append({"role": role, "content": m.get("content", "")})
         return out
