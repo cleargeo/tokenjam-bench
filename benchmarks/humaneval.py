@@ -28,7 +28,12 @@ class HumanEvalBenchmark:
                 "HumanEval needs the datasets extra. Run "
                 "`pip install 'tokenjam-bench[datasets]'`."
             ) from exc
-        self._ds = load_dataset("openai_humaneval", split="test")
+        # Namespaced repo id (required by datasets >= 3); fall back to the
+        # legacy bare name on older datasets versions.
+        try:
+            self._ds = load_dataset("openai/openai_humaneval", split="test")
+        except (ValueError, FileNotFoundError):
+            self._ds = load_dataset("openai_humaneval", split="test")
 
     def tasks(self, limit: int | None = None) -> list[Task]:
         rows = self._ds if limit is None else self._ds.select(range(min(limit, len(self._ds))))
