@@ -62,6 +62,15 @@ def run_ci(out_dir: str | Path = "results", live: bool | None = None,
         r.write(out)
         write_html_report(r.to_dict(), out)
 
+    # Index every run into the historical DB (best-effort; never breaks CI).
+    try:
+        from history import BenchmarkHistory
+        with BenchmarkHistory(out / "history.duckdb") as h:
+            for _label, r in results:
+                h.record(r.to_dict())
+    except Exception:
+        pass
+
     return results, render_summary(results, live)
 
 
