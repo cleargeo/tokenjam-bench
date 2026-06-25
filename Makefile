@@ -1,23 +1,30 @@
-.PHONY: install update-tokenjam test lint bench-smoke version
+.PHONY: install update-tokenjam test lint bench-smoke version serve dashboard
+
+# Use the python where the deps (tokenjam, click, rich) are installed.
+PY ?= python3
 
 # Install the bench (editable) + dev tooling.
 install:
 	pip install -e ".[dev]"
 
 # THE daily-pull command: upgrade to the latest published TokenJam and show the
-# version every subsequent proof will be stamped with. This is the only step
-# needed to test a new TokenJam release.
+# version every subsequent proof will be stamped with.
 update-tokenjam:
 	pip install -U tokenjam
-	@python -c "import importlib.metadata as m; print('tokenjam now at', m.version('tokenjam'))"
+	@$(PY) -c "import importlib.metadata as m; print('tokenjam now at', m.version('tokenjam'))"
 
+# All commands go through run.py so they work without relying on the installed
+# console script (flat layout → `cli` collides with the `cli` PyPI package).
 version:
-	tjbench version
+	$(PY) run.py version
 
-# Offline end-to-end smoke (no keys, no spend): proves the pipeline runs and
-# produces a stamped artifact.
+# Live proof dashboard (offline, auto-refreshing) at http://127.0.0.1:7392/
+serve dashboard:
+	$(PY) run.py serve --open
+
+# Offline end-to-end smoke (no keys, no spend).
 bench-smoke:
-	tjbench run --benchmark samples --original anthropic:claude-opus-4-7 --mock
+	$(PY) run.py run --benchmark samples --original anthropic:claude-opus-4-7 --mock
 
 test:
 	pytest -q
