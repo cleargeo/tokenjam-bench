@@ -109,11 +109,16 @@ _COLUMNS = [
 class BenchmarkHistory:
     """Persistent DuckDB store of every benchmark run + the query layer."""
 
-    def __init__(self, path: str | Path = DEFAULT_DB) -> None:
+    def __init__(self, path: str | Path = DEFAULT_DB, read_only: bool = False) -> None:
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = duckdb.connect(str(p))
-        _run_migrations(self._conn)
+        if read_only:
+            # Reads (dashboard, queries) open read-only so they coexist with a
+            # concurrent recording writer. Requires the schema to already exist.
+            self._conn = duckdb.connect(str(p), read_only=True)
+        else:
+            self._conn = duckdb.connect(str(p))
+            _run_migrations(self._conn)
 
     def close(self) -> None:
         self._conn.close()
@@ -232,3 +237,54 @@ class BenchmarkHistory:
     def count(self) -> int:
         r = self._conn.execute("SELECT COUNT(*) FROM benchmark_runs").fetchone()
         return int(r[0]) if r else 0
+
+    # -- analytics aggregates (Phase 4) --
+
+    # Each run is a pair; a model's accuracy appears on whichever side it's on.
+    _MODELS_CTE = (
+        "WITH per_model AS ("
+        " SELECT candidate_model AS model, candidate_pass_rate AS rate, "
+        "  candidate_cost_usd AS cost, benchmark, tokenjam_version, created_at "
+        " FROM benchmark_runs WHERE candidate_model IS NOT NULL "
+        " UNION ALL "
+        " SELECT original_model, original_pass_rate, original_cost_usd, benchmark, "
+        "  tokenjam_version, created_at FROM benchmark_runs WHERE original_model IS NOT NULL)"
+    )
+
+    def leaderboard(self, benchmark: str) -> list[dict]:
+        """Models on a benchmark, ranked by their latest pass-rate."""
+        return self._rows(
+            self._MODELS_CTE + ", latest AS ("
+            " SELECT model, rate, cost, tokenjam_version, ROW_NUMBER() OVER "
+            " (PARTITION BY model ORDER BY created_at DESC) rn FROM per_model "
+            " WHERE benchmark = ?) "
+            "SELECT model, rate AS pass_rate, cost AS cost_usd, tokenjam_version "
+            "FROM latest WHERE rn = 1 ORDER BY pass_rate DESC NULLS LAST",
+            [benchmark])
+
+    def provider_matrix(self) -> list[dict]:
+        """Per-model aggregate across all benchmarks: runs, accuracy, cost."""
+        return self._rows(
+            self._MODELS_CTE +
+            " SELECT model, COUNT(*) AS runs, COUNT(DISTINCT benchmark) AS benchmarks, "
+            " AVG(rate) AS avg_accuracy, AVG(cost) AS avg_cost_usd "
+            " FROM per_model GROUP BY model ORDER BY avg_accuracy DESC NULLS LAST")
+
+    def version_summary(self) -> list[dict]:
+        """Per TokenJam version: runs, mean deltas, regression count (sorted)."""
+        rows = self._rows(
+            "SELECT tokenjam_version AS version, COUNT(*) AS runs, "
+            "AVG(accuracy_delta_pp) AS avg_acc_delta_pp, AVG(cost_delta_pct) AS avg_cost_delta_pct, "
+            "SUM(CASE WHEN verdict IN ('significant_regression','regression_suspected') "
+            "  THEN 1 ELSE 0 END) AS regressions "
+            "FROM benchmark_runs WHERE tokenjam_version IS NOT NULL GROUP BY tokenjam_version")
+        return sorted(rows, key=lambda r: _version_key(r["version"]))
+
+    def regressions(self, limit: int = 50) -> list[dict]:
+        """Regression timeline — runs flagged as a regression, newest first."""
+        return self._rows(
+            "SELECT created_at, benchmark, original_model, candidate_model, "
+            "tokenjam_version, accuracy_delta_pp, cost_delta_pct, verdict "
+            "FROM benchmark_runs WHERE verdict IN "
+            "('significant_regression','regression_suspected') "
+            "ORDER BY created_at DESC LIMIT ?", [limit])
