@@ -1,7 +1,7 @@
 <div align="center">
 
 <picture>
-  <img src="Assets/ChatGPT Image Jun 25, 2026, 05_19_19 PM.png" alt="tokenjam-bench" width="200">
+  <img src="Assets/ChatGPT Image Jun 25, 2026, 05_19_19 PM.png" alt="tokenjam-bench" width="350">
 </picture>
 
 # Evidence-Based LLM Benchmarking
