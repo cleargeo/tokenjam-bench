@@ -106,7 +106,7 @@ tjbench agent [OPTIONS]
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--benchmark` | `sample-agent` | Agent benchmark to run |
+| `--benchmark` | `sample-agent` | Agent benchmark: `sample-agent`, `swe-bench-lite` |
 | `--original` | (required) | Original model spec |
 | `--candidate` | (TokenJam) | Override candidate model |
 | `--limit` | all | Limit number of tasks |
@@ -139,9 +139,9 @@ tjbench agent --benchmark sample-agent --original anthropic:claude-opus-4-7 --mo
 tjbench agent --benchmark sample-agent --original anthropic:claude-opus-4-7 --mock --candidate-behavior unsafe
 ```
 
-**Live agent proof:**
+**SWE-Bench Lite agent proof:**
 ```bash
-tjbench agent --benchmark sample-agent --original anthropic:claude-opus-4-7
+tjbench agent --benchmark swe-bench-lite --original anthropic:claude-opus-4-7 --mock --limit 5
 ```
 
 ---
