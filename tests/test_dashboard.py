@@ -34,6 +34,22 @@ def test_scan_empty_dir_is_safe(tmp_path):
     assert scan_runs(tmp_path) == []
 
 
+def test_history_summary_empty_and_populated(tmp_path):
+    from dashboard import history_summary
+    from history import BenchmarkHistory
+
+    db = tmp_path / "history.duckdb"
+    assert history_summary(db)["available"] is False        # no DB yet
+    with BenchmarkHistory(db) as h:
+        h.record({"benchmark": "humaneval", "tokenjam_version": "0.5.1",
+                  "created_at": 1.0, "original_model": "a:opus", "candidate_model": "a:haiku",
+                  "candidate_pass_rate": 1.0, "stats": {"verdict": "no_significant_regression"}})
+    s = history_summary(db)
+    assert s["available"] and s["count"] == 1
+    assert s["versions"] == ["0.5.1"]
+    assert s["configs"][0]["benchmark"] == "humaneval"
+
+
 def test_dashboard_html_is_offline():
     html = _DASHBOARD_HTML
     assert "<!doctype html>" in html.lower()
