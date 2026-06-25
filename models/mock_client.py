@@ -51,15 +51,19 @@ class MockClient:
         # Deterministic by design — temperature is accepted for interface parity
         # but ignored. Multi-sample variance only appears on live models.
         _ = temperature
-        # The sample prompt embeds a task key marker the mock reads back.
+        # The prompt embeds a `# task_key:` marker, and optionally a `# echo:`
+        # directive carrying the canned correct output (judged benchmarks use
+        # this so any task drives the mock without hardcoding answers here).
         task_key = ""
+        echo = ""
         for line in prompt.splitlines():
             if line.startswith("# task_key:"):
                 task_key = line.split(":", 1)[1].strip()
-                break
-        answer = _CANNED.get(task_key, "def _unsolved():\n    pass\n")
+            elif line.startswith("# echo:"):
+                echo = line.split(":", 1)[1].strip()
+        answer = echo or _CANNED.get(task_key, "def _unsolved():\n    pass\n")
         if task_key and self._fails_this_task(task_key):
-            answer = "def _wrong():\n    return None\n#### -1"
+            answer = "totally unrelated wrong output #### -1"
         # Token counts: cheap, deterministic, length-based (good enough for the
         # offline cost path — real numbers come from live clients).
         return Completion(
