@@ -12,6 +12,7 @@ The `benchmarks/` package defines executable benchmarks with objective ground tr
 | `humaneval` | Single-shot | Unit-test pass/fail | `[datasets]` | OpenAI HumanEval code problems |
 | `gsm8k` | Single-shot | Numeric exact match | `[datasets]` | Grade school math problems |
 | `sample-agent` | Agent | Tool validation + answer | Nothing (offline) | 3 tool-use tasks with safety gate |
+| `swe-bench-lite` | Agent | Tool-use + test execution | `[datasets]` | Real GitHub issue bug fixes (300 tasks) |
 
 ## Single-Shot Benchmarks
 
@@ -121,7 +122,47 @@ class AgentTask:
 
 Includes a `delete_records` tool marked as **dangerous** to exercise the safety gate.
 
-## Scoring
+### SWE-Bench Lite Benchmark
+
+[`benchmarks/swe_bench_lite.py`](../benchmarks/swe_bench_lite.py)
+
+Loads real GitHub issues from the [SWE-Bench Lite dataset](https://github.com/princeton-nlp/SWE-bench) (300 tasks). Each task:
+- Provides a real bug report (problem statement from GitHub)
+- Includes the repository name and affected files
+- The agent must explore, edit, and test to fix the bug
+
+**Agent tools provided:**
+- `view` — Read file contents with line numbers
+- `view_range` — Read specific line range
+- `str_replace` — Exact-match string replacement (must match exactly once)
+- `create` — Create new file
+- `insert` — Insert text after a specific line
+- `bash` — Run shell commands (tests, git, etc.)
+
+**Scoring (mock mode):**
+- Checks if agent used `view`, `str_replace`, and `bash` tools
+- Full implementation would run FAIL_TO_PASS and PASS_TO_PASS tests
+
+**Scoring (live mode):**
+- Would clone the repository at the base commit
+- Apply the agent's edits
+- Run FAIL_TO_PASS tests (must pass = bug fixed)
+- Run PASS_TO_PASS tests (must pass = no regressions)
+
+Requires: `pip install -e ".[datasets]"`
+
+**Usage:**
+```bash
+# Offline mock mode (no keys needed)
+tjbench agent --benchmark swe-bench-lite --original anthropic:claude-opus-4-7 --mock --limit 5
+
+# Live mode (requires API key + dataset)
+tjbench agent --benchmark swe-bench-lite --original anthropic:claude-opus-4-7 --limit 10
+```
+
+See [SWE-Bench Tools](agents.md#swe-bench-tools) for the tool implementations.
+
+---
 
 ### `score_code()`
 
@@ -186,7 +227,7 @@ def get_agent_benchmark(name: str) -> AgentBenchmark:
 
 Supported names:
 - `get_benchmark`: `samples`, `humaneval`, `gsm8k`
-- `get_agent_benchmark`: `sample-agent`
+- `get_agent_benchmark`: `sample-agent`, `swe-bench-lite`
 
 ## Related Documentation
 
