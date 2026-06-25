@@ -8,8 +8,11 @@ from __future__ import annotations
 
 from models.base import ModelClient
 from models.mock_client import MockClient
+from models.openai_compatible import PROVIDERS as _OAI_COMPAT
 
-_LIVE_PROVIDERS = {"anthropic", "openai", "google"}
+# anthropic/google have their own SDKs; openai + deepseek (+ future) share the
+# OpenAI-compatible abstraction in models/openai_compatible.py.
+_LIVE_PROVIDERS = {"anthropic", "google"} | set(_OAI_COMPAT)
 
 
 def parse_spec(spec: str) -> tuple[str, str]:
@@ -36,12 +39,12 @@ def get_client(spec: str, *, mock: bool = False, mock_accuracy: float = 1.0) -> 
     if provider == "anthropic":
         from models.anthropic_client import AnthropicClient
         return AnthropicClient(model)
-    if provider == "openai":
-        from models.openai_client import OpenAIClient
-        return OpenAIClient(model)
     if provider == "google":
         from models.google_client import GoogleClient
         return GoogleClient(model)
+    if provider in _OAI_COMPAT:  # openai, deepseek, future compatible providers
+        from models.openai_compatible import OpenAICompatibleClient
+        return OpenAICompatibleClient(model, provider_name=provider)
     raise ValueError(
         f"Unknown provider '{provider}'. Supported: {sorted(_LIVE_PROVIDERS)} (or 'mock')."
     )
