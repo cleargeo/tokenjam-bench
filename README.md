@@ -4,6 +4,8 @@
   <img src="Assets/ChatGPT Image Jun 25, 2026, 05_19_19 PM.png" alt="tokenjam-bench" width="200">
 </picture>
 
+# Evidence-Based LLM Benchmarking
+
 Proves the effect of TokenJam's recommendations on cost AND accuracy using executable benchmarks as objective ground truth.
 
 [![CI](https://github.com/HoomanDigital/tokenjam-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/HoomanDigital/tokenjam-benchmark/actions)
