@@ -430,6 +430,88 @@ def cmd_history_trend(benchmark: str, original: str | None, candidate: str | Non
     console.print(table)
 
 
+@cmd_history.command("leaderboard")
+@click.argument("benchmark")
+@click.option("--db", default=_default_db(), show_default=True)
+@click.option("--json", "output_json", is_flag=True)
+def cmd_history_leaderboard(benchmark: str, db: str, output_json: bool) -> None:
+    """Models ranked by their latest pass-rate on a benchmark."""
+    from history import BenchmarkHistory
+    with BenchmarkHistory(db) as h:
+        rows = h.leaderboard(benchmark)
+    if output_json:
+        console.print_json(data={"benchmark": benchmark, "rows": rows})
+        return
+    if not rows:
+        console.print(f"[dim]no recorded runs for '{benchmark}'.[/dim]")
+        return
+    table = Table(title=f"{benchmark} leaderboard")
+    for c in ("rank", "model", "pass-rate", "cost", "tokenjam"):
+        table.add_column(c)
+    for i, r in enumerate(rows, 1):
+        table.add_row(
+            f"#{i}", str(r["model"]), f"{(r.get('pass_rate') or 0) * 100:.0f}%",
+            f"${r['cost_usd']:.6f}" if r.get("cost_usd") is not None else "—",
+            str(r.get("tokenjam_version")))
+    console.print(table)
+
+
+@cmd_history.command("providers")
+@click.option("--db", default=_default_db(), show_default=True)
+@click.option("--json", "output_json", is_flag=True)
+def cmd_history_providers(db: str, output_json: bool) -> None:
+    """Per-model accuracy + cost aggregated across all benchmarks."""
+    from history import BenchmarkHistory
+    with BenchmarkHistory(db) as h:
+        rows = h.provider_matrix()
+    if output_json:
+        console.print_json(data={"rows": rows})
+        return
+    if not rows:
+        console.print("[dim]no history recorded.[/dim]")
+        return
+    table = Table(title="provider / model matrix")
+    for c in ("model", "runs", "benchmarks", "avg accuracy", "avg cost"):
+        table.add_column(c)
+    for r in rows:
+        table.add_row(
+            str(r["model"]), str(r["runs"]), str(r["benchmarks"]),
+            f"{(r.get('avg_accuracy') or 0) * 100:.0f}%",
+            f"${r['avg_cost_usd']:.6f}" if r.get("avg_cost_usd") is not None else "—")
+    console.print(table)
+
+
+@cmd_history.command("regressions")
+@click.option("--limit", default=50, show_default=True)
+@click.option("--db", default=_default_db(), show_default=True)
+@click.option("--json", "output_json", is_flag=True)
+def cmd_history_regressions(limit: int, db: str, output_json: bool) -> None:
+    """Timeline of runs flagged as a regression."""
+    import time
+
+    from history import BenchmarkHistory
+    with BenchmarkHistory(db) as h:
+        rows = h.regressions(limit)
+    if output_json:
+        console.print_json(data={"rows": rows})
+        return
+    if not rows:
+        console.print("[green]✓ no regressions recorded.[/green]")
+        return
+    table = Table(title="regression timeline")
+    for c in ("when", "benchmark", "models", "tokenjam", "Δacc", "verdict"):
+        table.add_column(c)
+    for r in rows:
+        table.add_row(
+            time.strftime("%m-%d %H:%M", time.localtime(r.get("created_at") or 0)),
+            str(r["benchmark"]),
+            f"{r.get('original_model')} → {r.get('candidate_model')}",
+            str(r.get("tokenjam_version")),
+            f"{r['accuracy_delta_pp']:+.1f}pp" if r.get("accuracy_delta_pp") is not None else "—",
+            str(r.get("verdict")))
+    console.print(table)
+
+
 @cli.command("matrix")
 @click.option("--dir", "directory", default="results", show_default=True,
               help="Directory of version-stamped proof artifacts to compare.")
