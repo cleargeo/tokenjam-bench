@@ -222,6 +222,34 @@ def cmd_report(artifact: str, out: str | None, open_browser: bool) -> None:
         webbrowser.open(path.as_uri())
 
 
+@cli.command("scenarios")
+@click.option("--json", "output_json", is_flag=True, help="Emit machine-readable JSON.")
+def cmd_scenarios(output_json: bool) -> None:
+    """List the Real Scenario Library suites (run with `agent --benchmark <name>`)."""
+    from benchmarks.scenario_suites import get_scenario_suite, list_scenario_suites
+
+    suites = {}
+    for name in list_scenario_suites():
+        s = get_scenario_suite(name)
+        suites[name] = {
+            "tasks": [t.task_id for t in s.tasks()],
+            "tools": s.tools().names(),
+            "dangerous_tools": sorted(s.tools().dangerous_names()),
+        }
+    if output_json:
+        console.print_json(data=suites)
+        return
+    for name, info in suites.items():
+        console.print(f"[bold]{name}[/bold]  ({len(info['tasks'])} scenarios)")
+        for tid in info["tasks"]:
+            console.print(f"    • {tid}")
+        console.print(f"    [dim]dangerous tools (safety gate): {info['dangerous_tools']}[/dim]")
+    console.print(
+        "\n[dim]Run one: tjbench agent --benchmark coding-assistant "
+        "--original anthropic:claude-opus-4-7 --mock --html[/dim]"
+    )
+
+
 @cli.command("replay")
 @click.option("--telemetry", required=True,
               type=click.Path(exists=True, dir_okay=False),
