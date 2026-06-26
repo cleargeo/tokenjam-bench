@@ -139,7 +139,8 @@ def write_artifact(cfg, bench, version, ts, n, orig_rate, cand_rate, b, c, *, mo
     a = orig_pass - b            # both pass
     d = n - a - b - c            # both fail
     if a < 0 or d < 0:
-        a = max(0, a); d = max(0, n - a - b - c)
+        a = max(0, a)
+        d = max(0, n - a - b - c)
     outcomes = make_outcomes(bench, orig_spec, cand_spec, a, b, c, d)
     res = assemble_proof(
         outcomes, benchmark_name=bench, original_spec=orig_spec,
@@ -224,7 +225,7 @@ def main():
     # (original, candidate, recommended_by)
     A = ("anthropic:claude-opus-4-7", "anthropic:claude-haiku-4-5", "tokenjam.DOWNGRADE_CANDIDATES")
     S = ("anthropic:claude-sonnet-4-6", "anthropic:claude-haiku-4-5", "tokenjam.DOWNGRADE_CANDIDATES")
-    O = ("openai:gpt-4o", "openai:gpt-4o-mini", "tokenjam.DOWNGRADE_CANDIDATES")
+    O_ = ("openai:gpt-4o", "openai:gpt-4o-mini", "tokenjam.DOWNGRADE_CANDIDATES")
     O41 = ("openai:gpt-4.1", "openai:gpt-4.1-mini", "tokenjam.DOWNGRADE_CANDIDATES")
     D = ("deepseek:deepseek-reasoner", "deepseek:deepseek-chat", "tokenjam.DOWNGRADE_CANDIDATES")
     G = ("google:gemini-1.5-pro", "google:gemini-1.5-flash", "tokenjam.DOWNGRADE_CANDIDATES")
@@ -256,14 +257,14 @@ def main():
     emit(S, "swe-bench-lite", "0.5.1", 60, 0.65, 0.633, b=4, c=3, jitter=4)
 
     # ---- gpt-4o→mini: a regression in 0.5.0 (swe), resolved in 0.5.1 ----
-    emit(O, "humaneval", "0.4.2", 164, 0.89, 0.872, b=9, c=6, jitter=1)
-    emit(O, "humaneval", "0.5.0", 164, 0.89, 0.884, b=7, c=6, jitter=1)
-    emit(O, "humaneval", "0.5.1", 164, 0.896, 0.89, b=6, c=5, jitter=1)
-    emit(O, "swe-bench-lite", "0.5.0", 80, 0.65, 0.525, b=14, c=4, jitter=4)   # REGRESSION
-    emit(O, "swe-bench-lite", "0.5.1", 80, 0.65, 0.625, b=6, c=4, jitter=4)    # resolved
-    emit(O, "gsm8k", "0.5.1", 130, 0.94, 0.946, b=4, c=5, jitter=3)
-    emit(O, "judged", "0.5.1", 80, 0.90, 0.888, b=5, c=4, jitter=7)
-    emit(O, "replay", "0.5.1", 110, 0.93, 0.927, b=5, c=4, jitter=6)
+    emit(O_, "humaneval", "0.4.2", 164, 0.89, 0.872, b=9, c=6, jitter=1)
+    emit(O_, "humaneval", "0.5.0", 164, 0.89, 0.884, b=7, c=6, jitter=1)
+    emit(O_, "humaneval", "0.5.1", 164, 0.896, 0.89, b=6, c=5, jitter=1)
+    emit(O_, "swe-bench-lite", "0.5.0", 80, 0.65, 0.525, b=14, c=4, jitter=4)   # REGRESSION
+    emit(O_, "swe-bench-lite", "0.5.1", 80, 0.65, 0.625, b=6, c=4, jitter=4)    # resolved
+    emit(O_, "gsm8k", "0.5.1", 130, 0.94, 0.946, b=4, c=5, jitter=3)
+    emit(O_, "judged", "0.5.1", 80, 0.90, 0.888, b=5, c=4, jitter=7)
+    emit(O_, "replay", "0.5.1", 110, 0.93, 0.927, b=5, c=4, jitter=6)
 
     # ---- gpt-4.1→mini: cleared ----
     emit(O41, "humaneval", "0.5.1", 164, 0.91, 0.902, b=6, c=5, jitter=1)
