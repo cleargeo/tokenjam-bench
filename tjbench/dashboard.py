@@ -34,6 +34,18 @@ def _pair(seq, i):
         return None
 
 
+# Optional enrichment keys (present only on demo-fixture artifacts; real runs
+# omit them). Passed straight through to the UI so the richer pages can render
+# them — purely additive, never required.
+_ENRICH_KEYS = (
+    "demo", "difficulty", "task_category", "ground_truth", "ground_truth_size",
+    "coverage_pct", "latency_ms_original", "latency_ms_candidate", "latency_saved_pct",
+    "failure_categories", "judge", "semantic_match_rate", "behavior_match_rate",
+    "critical_failures", "replay_diffs", "expected_tool_calls", "avg_runtime_s",
+    "risk_category", "safety_gate", "unsafe_actions_blocked", "pass_threshold",
+)
+
+
 def scan_runs(directory: str | Path) -> list[dict[str, Any]]:
     """Summarize every proof artifact in `directory`, newest first.
 
@@ -52,7 +64,7 @@ def scan_runs(directory: str | Path) -> list[dict[str, Any]]:
         s = d.get("stats", {}) or {}
         cand_ci = s.get("candidate_ci_pp") or []
         delta_ci = s.get("delta_ci_pp") or []
-        runs.append({
+        row = {
             "file": p.name,
             "benchmark": d.get("benchmark", "?"),
             "original_model": d.get("original_model", "?"),
@@ -83,7 +95,11 @@ def scan_runs(directory: str | Path) -> list[dict[str, Any]]:
             "verdict": s.get("verdict", "?"),
             "mock": d.get("mock", False),
             "created_at": d.get("created_at", 0.0),
-        })
+        }
+        for k in _ENRICH_KEYS:
+            if k in d:
+                row[k] = d[k]
+        runs.append(row)
     runs.sort(key=lambda r: r["created_at"], reverse=True)
     return runs
 
@@ -467,6 +483,29 @@ button.lnk.danger:hover{background:color-mix(in srgb,var(--bad) 12%,transparent)
 .chart .ch-sub{color:var(--mut);font-size:12px;margin:0 0 12px}
 .legend{display:flex;gap:16px;font-size:12px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+/* horizontal bars (distributions / failure reasons) */
+.hbars{display:flex;flex-direction:column;gap:9px}
+.hbar{display:grid;grid-template-columns:130px 1fr 60px;align-items:center;gap:12px;font-size:12.5px}
+.hbar-l{color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar-track{height:8px;border-radius:6px;background:var(--chip);overflow:hidden}
+.hbar-track > i{display:block;height:100%;border-radius:6px}
+.hbar-v{text-align:right;color:var(--fg);font-variant-numeric:tabular-nums}
+/* metric tiles */
+.mtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.mtile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;transition:border-color .15s}
+.mtile:hover{border-color:var(--line2)}
+.mtile .mt-v{font-size:21px;font-weight:750;letter-spacing:-.01em}
+.mtile .mt-l{font-size:11.5px;color:var(--mut);margin-top:3px}
+.mtile .mt-bar{height:6px;border-radius:6px;background:var(--chip);margin-top:10px;overflow:hidden}
+.mtile .mt-bar > i{display:block;height:100%;border-radius:6px;background:var(--acc)}
+/* diff viewer */
+.diff{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px;background:var(--panel)}
+.diff-q{padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--fg);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.diff-cols{display:grid;grid-template-columns:1fr 1fr}
+.diff-col{padding:11px 14px;font-size:12.5px;line-height:1.5}
+.diff-col:first-child{border-right:1px solid var(--line)}
+.diff-col .dc-h{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut2);margin-bottom:5px}
+@media(max-width:760px){.diff-cols{grid-template-columns:1fr}.diff-col:first-child{border-right:none;border-bottom:1px solid var(--line)}.hbar{grid-template-columns:100px 1fr 48px}}
 /* timeline */
 .tl{display:flex;flex-direction:column}
 .tl-item{display:flex;gap:14px;padding:11px 2px;position:relative}
@@ -627,6 +666,26 @@ function donut(frac,label){
    stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 60 60)" />
   <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--fg)">${Math.round(frac*100)}%</text>
   <text x="60" y="76" text-anchor="middle" font-size="10" style="fill:var(--mut)">${esc(label||"")}</text></svg>`;}
+function radar(items){ // items:[{label,value 0..1}] — N-axis radar
+ const n=items.length;if(n<3)return'<div class=empty>not enough metrics</div>';
+ const W=360,H=300,cx=W/2,cy=H/2+4,R=92;
+ const ang=i=>-Math.PI/2+i*2*Math.PI/n;
+ const pt=(i,r)=>[cx+Math.cos(ang(i))*R*r,cy+Math.sin(ang(i))*R*r];
+ let rings="";[.25,.5,.75,1].forEach(rr=>{
+  const p=items.map((_,i)=>pt(i,rr).map(v=>v.toFixed(1)).join(",")).join(" ");
+  rings+=`<polygon points="${p}" style="fill:none;stroke:var(--line)" stroke-width="1" />`;});
+ let axes="",labels="";items.forEach((it,i)=>{const[ex,ey]=pt(i,1);
+  axes+=`<line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" style="stroke:var(--line)" stroke-width="1" />`;
+  const[lx,ly]=pt(i,1.16);labels+=`<text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" style="fill:var(--mut)" font-size="10.5" text-anchor="middle">${esc(it.label)}</text>`;});
+ const poly=items.map((it,i)=>pt(i,Math.max(0,Math.min(1,it.value))).map(v=>v.toFixed(1)).join(",")).join(" ");
+ const dots=items.map((it,i)=>{const[x,y]=pt(i,Math.max(0,Math.min(1,it.value)));return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" style="fill:var(--acc)" />`;}).join("");
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:380px;height:300px">${rings}${axes}<polygon points="${poly}" style="fill:var(--acc);opacity:.18" /><polygon points="${poly}" style="fill:none;stroke:var(--acc)" stroke-width="2" />${dots}${labels}</svg>`;}
+function hbars(items,opts){ // items:[{label,value,color?}]
+ opts=opts||{};if(!items||!items.length)return'<div class=empty>none</div>';
+ const mx=Math.max(...items.map(i=>i.value||0),1);
+ return `<div class=hbars>`+items.map(it=>`<div class=hbar><div class=hbar-l title="${esc(it.label)}">${esc(it.label)}</div>
+   <div class=hbar-track><i style="width:${((it.value||0)/mx*100).toFixed(1)}%;background:${it.color||'var(--acc)'}"></i></div>
+   <div class=hbar-v>${esc(opts.fmt?opts.fmt(it.value):it.value)}</div></div>`).join("")+`</div>`;}
 // ---- reusable table (search + click-sort) ----------------------------------
 const _TBL={};
 function table(elId,cols,rows,opts){_TBL[elId]={cols,rows,opts:opts||{},q:"",sk:(opts&&opts.sortKey)||null,dir:(opts&&opts.dir)||-1};drawTable(elId);}
@@ -857,68 +916,102 @@ async function pgScenarios(){
 }
 async function pgReplay(){
  const runs=(await loadRuns()).filter(r=>r.benchmark==="replay");
+ const histReq=runs.reduce((a,r)=>a+(r.n_tasks||0),0);
+ const equiv=runs.reduce((a,r)=>a+(r.candidate_pass||0),0);
+ const crit=runs.reduce((a,r)=>a+(r.critical_failures||0),0);
+ const semM=avg(runs.map(r=>r.semantic_match_rate).filter(x=>x!=null));
+ const behM=avg(runs.map(r=>r.behavior_match_rate).filter(x=>x!=null));
+ const avgPass=avg(runs.map(r=>r.candidate_pass_rate));
+ const latSaved=avg(runs.map(r=>r.latency_saved_pct).filter(x=>x!=null));
+ const avgSave=avg(runs.map(r=>-r.cost_delta_pct));
  const cards=[
-  statCard(runs.length,"Replay Runs","historical re-validations"),
-  statCard(runs.reduce((a,r)=>a+(r.candidate_pass||0),0),"Equivalent Outputs","judge-passed turns"),
-  statCard(runs.reduce((a,r)=>a+(r.mcnemar_b||0),0),"Divergences","original-pass / candidate-fail"),
-  statCard((()=>{const v=avg(runs.map(r=>r.candidate_pass_rate));return v==null?"—":Math.round(v)+"%";})(),"Avg Judge Pass","across replay runs"),
-  statCard((()=>{const v=avg(runs.map(r=>-r.cost_delta_pct));return v==null?"—":"−"+Math.round(v)+"%";})(),"Avg Cost Saved","vs historical spend"),
+  statCard(runs.length,"Replay Sessions","historical re-validations"),
+  statCard(histReq.toLocaleString(),"Historical Requests","turns replayed"),
+  statCard(equiv.toLocaleString(),"Equivalent Outputs","judge-passed turns"),
+  statCard(crit,"Critical Failures",crit?"need human review":"none flagged"),
+  statCard(avgSave==null?"—":"−"+Math.round(avgSave)+"%","Avg Cost Saved","vs historical spend"),
  ].join("");
- let body;
- if(!runs.length)body=`<div class="banner"><div class=bi>${BI.replay}</div><div><b>No replay runs yet.</b>
-   <div class=bsub>Replay re-runs your real TokenJam telemetry through the candidate model and judges equivalence. Run <span class=mono>tjbench replay &lt;telemetry&gt;</span>.</div></div></div>`;
- else body=`<div class=chart style="margin-top:18px"><h3>Replay equivalence over time</h3>
-   <p class=ch-sub>judge pass-rate (accuracy) and cost saved per replay run</p><div id=chartbox></div>
-   <div class=legend><span><i style="background:var(--acc)"></i>judge pass-rate</span><span><i style="background:var(--good)"></i>cost saved</span></div></div>
-   <div class=sect>Recent replay runs</div><div id=rptbl></div>`;
- M().innerHTML=`<p class=lead>Replay validation answers the strongest version of the question: on <b>your own historical traffic</b>, does the cheaper model produce equivalent outputs? Equivalence is judged, divergences are counted, and the verdict stays hedged.</p>
-  <div class="grid g5">${cards}</div>${body}`;
- if(runs.length){
-  drawChart("chartbox",runs.slice().reverse().map(r=>({a:r.candidate_pass_rate,c:Math.max(0,-r.cost_delta_pct),x:fmtTime(r.created_at).split(",")[0]})));
-  table("rptbl",[
-   {key:"created_at",label:"When",html:r=>`<span class=mono>${esc(fmtTime(r.created_at))}</span>`},
-   {key:"candidate_model",label:"Candidate",html:r=>`<span class=mono>${esc(r.candidate_model)}</span>`},
-   {key:"n_tasks",label:"Turns"},
-   {key:"candidate_pass",label:"Equivalent",html:r=>`${r.candidate_pass==null?"—":r.candidate_pass} / ${r.n_tasks}`},
-   {key:"mcnemar_b",label:"Divergences",html:r=>r.mcnemar_b==null?"—":String(r.mcnemar_b)},
-   {key:"cost_delta_pct",label:"Cost Saved",sort:r=>-r.cost_delta_pct,html:r=>saved(r.cost_delta_pct)},
-   {key:"verdict",label:"Verdict",html:r=>badge(r.verdict)},
-   {key:"file",label:"",nosort:true,html:r=>reportActs(r)},
-  ],runs,{sortKey:"created_at",dir:-1});
- }
+ if(!runs.length){M().innerHTML=`<p class=lead>Replay validation answers the strongest version of the question: on <b>your own historical traffic</b>, does the cheaper model produce equivalent outputs?</p>
+   <div class="banner"><div class=bi>${BI.replay}</div><div><b>No replay runs yet.</b>
+   <div class=bsub>Replay re-runs your real TokenJam telemetry through the candidate model and judges equivalence. Run <span class=mono>tjbench replay &lt;telemetry&gt;</span>.</div></div></div>`;return;}
+ const matchBars=hbars([
+  {label:"Semantic match",value:semM||0,color:"var(--good)"},
+  {label:"Behavioral match",value:behM||0,color:"var(--good)"},
+  {label:"Judge pass-rate",value:avgPass||0,color:"var(--acc)"},
+  {label:"Latency saved",value:latSaved||0,color:"var(--acc)"},
+ ],{fmt:v=>Math.round(v)+"%"});
+ const fc={};runs.forEach(r=>(r.failure_categories||[]).forEach(f=>{fc[f.category]=(fc[f.category]||0)+f.count;}));
+ const failBars=hbars(Object.entries(fc).map(([k,v])=>({label:k,value:v,color:"var(--bad)"})).sort((a,b)=>b.value-a.value),{});
+ const wd=runs.find(r=>r.replay_diffs&&r.replay_diffs.length);
+ const diffHtml=(wd?wd.replay_diffs:[]).map(d=>`<div class=diff><div class=diff-q><span class=mono>${esc(d.prompt)}</span><span class="badge ${d.match==='equivalent'?'b-good':'b-warn'}">${esc(d.match)}</span></div>
+   <div class=diff-cols><div class=diff-col><div class=dc-h>original</div>${esc(d.original)}</div><div class=diff-col><div class=dc-h>candidate</div>${esc(d.candidate)}</div></div></div>`).join("")||'<div class=empty>no captured diffs</div>';
+ M().innerHTML=`<p class=lead>Replay validation answers the strongest version of the question: on <b>your own historical traffic</b>, does the cheaper model produce equivalent outputs? Equivalence is judged turn-by-turn, divergences are counted, and the verdict stays hedged.</p>
+  <div class="grid g5">${cards}</div>
+  <div class="grid g2" style="margin-top:16px;align-items:start">
+   <div class=chart><h3>Replay equivalence over time</h3><p class=ch-sub>judge pass-rate and cost saved per replay session</p><div id=chartbox></div>
+    <div class=legend><span><i style="background:var(--acc)"></i>judge pass-rate</span><span><i style="background:var(--good)"></i>cost saved</span></div></div>
+   <div class=card><div class=sect style="margin:0 0 12px">Output match rates</div>${matchBars}
+    <div class=muted style="font-size:11.5px;margin-top:14px">Semantic = same meaning; behavioral = same tools/actions taken. Judge pass-rate flows into the McNemar verdict.</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px;align-items:start">
+   <div class=card><div class=sect style="margin:0 0 12px">Divergence reasons</div>${failBars}</div>
+   <div class=card><div class=sect style="margin:0 0 10px">Sample output diffs &middot; behavior comparison</div>${diffHtml}</div>
+  </div>
+  <div class=sect>Recent replay sessions</div><div id=rptbl></div>`;
+ drawChart("chartbox",runs.slice().reverse().map(r=>({a:r.candidate_pass_rate,c:Math.max(0,-r.cost_delta_pct),x:fmtTime(r.created_at).split(",")[0]})));
+ table("rptbl",[
+  {key:"created_at",label:"When",html:r=>`<span class=mono>${esc(fmtTime(r.created_at))}</span>`},
+  {key:"candidate_model",label:"Candidate",html:r=>`<span class=mono>${esc(r.candidate_model)}</span>`},
+  {key:"n_tasks",label:"Turns"},
+  {key:"candidate_pass",label:"Equivalent",html:r=>`${r.candidate_pass==null?"—":r.candidate_pass} / ${r.n_tasks}`},
+  {key:"semantic_match_rate",label:"Semantic",html:r=>r.semantic_match_rate==null?"—":r.semantic_match_rate+"%"},
+  {key:"critical_failures",label:"Critical",html:r=>r.critical_failures==null?"—":String(r.critical_failures)},
+  {key:"cost_delta_pct",label:"Cost Saved",sort:r=>-r.cost_delta_pct,html:r=>saved(r.cost_delta_pct)},
+  {key:"verdict",label:"Verdict",html:r=>badge(r.verdict)},
+  {key:"file",label:"",nosort:true,html:r=>reportActs(r)},
+ ],runs,{sortKey:"created_at",dir:-1});
 }
 async function pgDeepEval(){
  const runs=await loadRuns();const judged=runs.filter(r=>r.benchmark==="judged");
- const trend=await getJSON("/api/trend?benchmark=judged");
- const scores=(trend&&trend.rows||[]).map(r=>r.deepeval_score).filter(x=>x!=null);
- const avgScore=judged.length?avg(judged.map(r=>r.candidate_pass_rate/100)):(scores.length?avg(scores):null);
- const METRICS=[["Correctness","is the answer factually right vs the reference"],
-  ["Faithfulness","does it stay grounded in provided context"],
-  ["Answer Relevancy","does it actually address the question"],
-  ["Task Completion","did the agent achieve the goal"]];
- const mcards=METRICS.map(m=>`<div class="card hov"><div style="font-weight:600">${m[0]}</div>
-   <div class=muted style="font-size:12px;margin-top:4px">${m[1]}</div>
-   <div style="margin-top:10px"><span class="badge b-mut">DeepEval metric</span></div></div>`).join("");
- const left=`<div class=card style="display:flex;gap:18px;align-items:center">
-   <div>${donut(avgScore==null?0:avgScore,"avg judge")}</div>
-   <div><div class=muted style="font-size:12px">AVERAGE JUDGE SCORE</div>
-   <div style="font-size:26px;font-weight:700">${avgScore==null?"—":avgScore.toFixed(2)}</div>
-   <div class=muted style="font-size:12px;margin-top:2px">${judged.length} judged run${judged.length===1?"":"s"} · DeepSeek/DeepEval backend</div></div></div>`;
- M().innerHTML=`<p class=lead>For open-ended tasks where there's no unit test, equivalence is scored by an LLM judge (DeepEval, DeepSeek-backed). We report the <b>real judge pass-rate</b> — not four invented sub-scores. The metrics below are what the judge layer can run.</p>
-  <div class="grid g2" style="align-items:start">${left}
-   <div class=card><div class=sect style="margin:0 0 8px">How judging works</div>
-   <div class=muted style="font-size:13px">Each judged turn is scored by the configured DeepEval metric against the original's output. A turn "passes" when the score clears the threshold; the run's pass-rate is the share of passing turns, and it flows into the same McNemar verdict as the executable benchmarks.</div></div></div>
-  <div class=sect>Supported evaluation metrics</div><div class="grid g4">${mcards}</div>
+ const avgScore=avg(judged.map(r=>r.candidate_pass_rate/100));
+ const jm=judged.map(r=>r.judge).filter(Boolean);
+ const MM=k=>avg(jm.map(j=>j[k]).filter(x=>x!=null));
+ const correctness=MM("correctness"),faith=MM("faithfulness"),rel=MM("answer_relevancy"),comp=MM("task_completion"),reason=MM("reasoning_quality");
+ const agree=MM("judge_agreement"),halluc=MM("hallucination_rate"),cite=MM("citation_accuracy");
+ if(!judged.length){M().innerHTML=`<p class=lead>For open-ended tasks with no unit test, equivalence is scored by an LLM judge (DeepEval, DeepSeek-backed).</p>
+   <div class="banner"><div class=bi>${BI.info}</div><div><b>No LLM-judged runs yet.</b>
+   <div class=bsub>Run <span class=mono>tjbench run --benchmark judged</span> to score open-ended tasks with the DeepEval judge.</div></div></div>`;return;}
+ const radarItems=[{label:"Correctness",value:correctness||0},{label:"Faithfulness",value:faith||0},{label:"Relevancy",value:rel||0},{label:"Completion",value:comp||0},{label:"Reasoning",value:reason||0}];
+ const tile=(label,frac)=>`<div class=mtile><div class=mt-v>${frac==null?"—":Math.round(frac*100)+"%"}</div><div class=mt-l>${esc(label)}</div><div class=mt-bar><i style="width:${frac==null?0:Math.round(frac*100)}%"></i></div></div>`;
+ const tiles=[tile("Correctness",correctness),tile("Faithfulness",faith),tile("Answer Relevancy",rel),tile("Task Completion",comp),tile("Reasoning Quality",reason),tile("Judge Agreement",agree),tile("Citation Accuracy",cite),
+   `<div class=mtile><div class=mt-v>${halluc==null?"—":halluc.toFixed(1)+"%"}</div><div class=mt-l>Hallucination Rate</div><div class=mt-bar><i style="width:${halluc==null?0:Math.min(100,halluc*8)}%;background:var(--bad)"></i></div></div>`].join("");
+ M().innerHTML=`<p class=lead>For open-ended tasks with no unit test, equivalence is scored by an LLM judge (DeepEval, DeepSeek-backed). The run's pass-rate flows into the same McNemar verdict as the executable benchmarks; the sub-scores below profile <i>where</i> the candidate gains or loses.</p>
+  <div class="grid g2" style="align-items:stretch">
+   <div class=card style="display:flex;gap:20px;align-items:center">
+     <div>${donut(avgScore||0,"judge pass")}</div>
+     <div><div class=muted style="font-size:12px">AVERAGE JUDGE SCORE</div>
+      <div style="font-size:28px;font-weight:750">${avgScore==null?"—":Math.round(avgScore*100)+"%"}</div>
+      <div class=muted style="font-size:12px;margin-top:2px">${judged.length} judged run${judged.length===1?"":"s"} · DeepSeek/DeepEval backend</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><span class="badge b-good">agreement ${agree==null?"—":Math.round(agree*100)+"%"}</span><span class="badge ${halluc>3?"b-warn":"b-good"}">halluc ${halluc==null?"—":halluc.toFixed(1)+"%"}</span></div></div></div>
+   <div class=chart><h3>Evaluation metric profile</h3><p class=ch-sub>mean across judged runs</p><div style="display:flex;justify-content:center">${radar(radarItems)}</div></div>
+  </div>
+  <div class=sect>Metric breakdown</div><div class=mtiles>${tiles}</div>
+  <div class="grid g2" style="margin-top:16px;align-items:start">
+   <div class=chart><h3>Judge score by run</h3><p class=ch-sub>pass-rate per judged configuration</p><div id=descore></div></div>
+   <div class=card><div class=sect style="margin:0 0 8px">How judging works</div><div class=muted style="font-size:13px">Each judged turn is scored by the configured DeepEval metric against the original's output. A turn "passes" when its score clears the threshold; the run's pass-rate is the share of passing turns. The sub-scores (correctness, faithfulness, relevancy, completion, reasoning) are the judge's per-dimension breakdown.</div></div>
+  </div>
   <div class=sect>Recent judge results</div><div id=detbl></div>`;
+ barChart("descore",judged.slice().reverse().map(r=>({label:modelOf(r.candidate_model).slice(0,9),value:r.candidate_pass_rate,color:"var(--acc)"})));
  table("detbl",[
   {key:"created_at",label:"When",html:r=>`<span class=mono>${esc(fmtTime(r.created_at))}</span>`},
   {key:"candidate_model",label:"Candidate",html:r=>`<span class=mono>${esc(r.candidate_model)}</span>`},
   {key:"n_tasks",label:"Cases"},
   {key:"candidate_pass_rate",label:"Judge Pass",html:r=>`<b>${r.candidate_pass_rate}%</b>`},
-  {key:"accuracy_delta_pp",label:"vs Original",html:r=>accDelta(r.accuracy_delta_pp)},
+  {key:"_corr",label:"Correctness",get:r=>r.judge&&r.judge.correctness,html:r=>r.judge?Math.round(r.judge.correctness*100)+"%":"—"},
+  {key:"_faith",label:"Faithfulness",get:r=>r.judge&&r.judge.faithfulness,html:r=>r.judge?Math.round(r.judge.faithfulness*100)+"%":"—"},
   {key:"verdict",label:"Verdict",html:r=>badge(r.verdict)},
   {key:"file",label:"",nosort:true,html:r=>reportActs(r)},
- ],judged,{sortKey:"created_at",dir:-1,empty:"No LLM-judged runs yet — run tjbench run --benchmark judged."});
+ ],judged,{sortKey:"created_at",dir:-1});
 }
 let selTrend=null;
 async function pgTrends(){
