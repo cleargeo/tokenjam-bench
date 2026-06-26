@@ -41,12 +41,12 @@
     },
     {
       "id": "research/competitive-positioning",
-      "question": "From the sources, summarize how the product is positioned versus two competitors in one paragraph.",
+      "question": "From the sources, summarize how Product A is positioned versus two alternatives in one paragraph.",
       "knowledge_context": [
-        "Source A: Competitor X is cheapest but lacks statistical rigor in its eval reports.",
-        "Source B: Competitor Y has strong dashboards but is cloud-only with no offline mode; the product differentiates on local-first, statistically-hedged evaluation."
+        "Source A: Alternative 1 has the lowest price but offers limited reporting and few integrations.",
+        "Source B: Alternative 2 has advanced analytics but is web-only with no mobile app; Product A sits in between, emphasizing broad integrations and fast setup."
       ],
-      "expected_response": "The product sits between the two: cheaper Competitor X wins on price but offers little statistical rigor, while Competitor Y has strong dashboards yet is cloud-only with no offline mode. The product's differentiation is local-first operation plus statistically-hedged evaluation (CIs and significance rather than a single 'safe' score) [Source A; Source B].",
+      "expected_response": "Product A is positioned in the middle of the two alternatives: Alternative 1 is the cheapest but has limited reporting and few integrations, while Alternative 2 offers advanced analytics but is web-only with no mobile app. Product A's stated positioning is the middle ground — broad integrations and fast setup [Source A; Source B].",
       "sources": ["Source A", "Source B"],
       "category": "Competitive analysis",
       "difficulty": "medium"
