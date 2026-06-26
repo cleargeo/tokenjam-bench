@@ -15,5 +15,13 @@ results/*.duckdb.wal
 .deepeval/
 .deepeval-cache.json
 
+# Secrets — never commit. Live provider keys land here for real benchmark runs.
+.env
+.env.local
+.env.*.local
+
+# Local agent scratch (briefs, notes) — not part of the published repo.
+.claude/
+
 # macOS
 .DS_Store
