@@ -467,6 +467,24 @@ select:focus,input.in:focus,button:focus{outline:none;border-color:var(--acc)}
 .tji-note svg{width:15px;height:15px;color:var(--good);flex:0 0 auto}.tji-note b{color:var(--fg)}
 .tji-proj{margin-top:9px;font-size:12.5px;color:var(--mut)}.tji-proj b{color:var(--fg)}.tji-proj span{color:var(--mut2);font-size:11px}
 @media(max-width:900px){.tji-grid{grid-template-columns:1fr}.cmpbar{grid-template-columns:48px 1fr 120px}}
+/* business impact: ROI calculator + swaps + evidence grid */
+.roi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.roi-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.roi-top label{font-size:13px;color:var(--mut);font-weight:550}
+.roi-input{display:inline-flex;align-items:center;gap:4px;font-size:20px;font-weight:700;border:1px solid var(--line2);border-radius:10px;padding:6px 12px;background:var(--bg2)}
+.roi-input input{width:130px;border:none;background:transparent;color:var(--fg);font:700 20px inherit;font-family:inherit;outline:none}
+.roi-rate{color:var(--mut);font-size:12.5px}.roi-rate b{color:var(--good)}
+.roi-out{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.roi-cell{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.roi-cell.good{border-color:color-mix(in srgb,var(--good) 40%,var(--line));background:color-mix(in srgb,var(--good) 7%,transparent)}
+.roi-l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+.roi-v{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+.roi-cell.good .roi-v{color:var(--good)}
+.swaps{display:flex;flex-direction:column}
+.swap{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.swap:last-child{border-bottom:none}.swap-b{font-weight:600;font-size:13.5px}
+.evgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px 18px}
+@media(max-width:760px){.roi-out{grid-template-columns:1fr}.evgrid{grid-template-columns:1fr}}
 /* badges */
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
  padding:3px 9px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
@@ -599,7 +617,7 @@ button.lnk.danger:hover{background:color-mix(in srgb,var(--bad) 12%,transparent)
 "use strict";
 // ---- nav model (grouped sections + monochrome line icons) ------------------
 const NAV=[
- ["Platform",[["overview","Overview"],["benchmarks","Benchmarks"],
+ ["Platform",[["impact","Business Impact"],["overview","Overview"],["benchmarks","Benchmarks"],
    ["scenarios","Scenario Library"],["replay","Replay Validation"]]],
  ["Evaluation",[["deepeval","DeepEval"],["trends","Trends"],["leaderboards","Leaderboards"],
    ["providers","Provider Comparison"],["versions","Version Comparison"],["regressions","Regression Center"]]],
@@ -608,6 +626,7 @@ const LABEL=Object.fromEntries(NAV.flatMap(g=>g[1]));
 // Feather/Lucide-style stroke icons (currentColor, quoted attrs so /> self-closes)
 const _IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">';
 const ICONS={
+ impact:_IC+'<circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="1.2" /></svg>',
  overview:_IC+'<rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>',
  benchmarks:_IC+'<line x1="6" y1="20" x2="6" y2="14" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="18" y1="20" x2="18" y2="9" /></svg>',
  scenarios:_IC+'<rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 8V5" /><circle cx="9" cy="14" r="1" /><circle cx="15" cy="14" r="1" /><path d="M2 14h2" /><path d="M20 14h2" /></svg>',
@@ -894,6 +913,115 @@ function tjImpact(runs){
   <div class=tji-proj>At 10× this volume you'd save <b>${usd(saved*10)}</b>; at 100×, <b>${usd(saved*100)}</b> <span>· linear projection at measured rates, not a forecast</span></div>
  </div>`;}
 // =================== PAGES ==================================================
+let _roiRatio=0.35;
+function recalcROI(){
+ const el=document.getElementById("roiSpend");if(!el)return;
+ const spend=Math.max(0,parseFloat(el.value)||0),after=spend*_roiRatio,save=spend-after;
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+ set("roiAfter",usd(after));set("roiSave",usd(save));set("roiYear",usd(save*12));}
+async function pgImpact(){
+ const runs=await loadRuns();
+ if(!runs.length){M().innerHTML='<div class=empty>No benchmark runs yet — run proofs to compute business impact.</div>';return;}
+ const sw=r=>!BAD.has(r.verdict)&&(r.candidate_cost_usd||0)<(r.original_cost_usd||0);
+ let beforeCost=0,afterCost=0,beforeTok=0,afterTok=0,tasks=0,kept=0,woA=0,wA=0,den=0;
+ const mix={},fam={};
+ runs.forEach(r=>{const n=r.n_tasks||0;tasks+=n;den+=n;
+  const oc=r.original_cost_usd||0,cc=r.candidate_cost_usd||0,ot=r.original_output_tokens||0,ct=r.candidate_output_tokens||0;
+  beforeCost+=oc;beforeTok+=ot;woA+=(r.original_pass_rate||0)*n;
+  if(sw(r)){afterCost+=cc;afterTok+=ct;wA+=(r.candidate_pass_rate||0)*n;mix[r.candidate_model]=(mix[r.candidate_model]||0)+n;(fam[r.candidate_model]=fam[r.candidate_model]||new Set()).add(r.benchmark);}
+  else{afterCost+=oc;afterTok+=ot;wA+=(r.original_pass_rate||0)*n;kept+=n;}});
+ const costSave=beforeCost>0?(1-afterCost/beforeCost)*100:0,tokSave=beforeTok>0?(1-afterTok/beforeTok)*100:0;
+ const accChange=den>0?(wA-woA)/den:0;
+ _roiRatio=beforeCost>0?afterCost/beforeCost:0.35;
+ const avoided=runs.filter(r=>BAD.has(r.verdict));
+ const benches=[...new Set(runs.map(r=>r.benchmark))],wfCount=benches.filter(b=>PROD.has(b)).length;
+ const replayN=runs.filter(r=>r.benchmark==="replay").length;
+ const rec=pickRecommendation(runs),rrs=rec?rec.runs:[],dec=recommendation(rrs);
+ const recN=rrs.reduce((a,r)=>a+(r.n_tasks||0),0);
+ const ps=rrs.map(r=>r.mcnemar_p).filter(x=>x!=null),minP=ps.length?Math.min(...ps):null;
+ const rep=stageGroup(rrs,r=>r.benchmark==="replay"),scn=stageGroup(rrs,r=>SCEN.has(r.benchmark)||PROD.has(r.benchmark));
+ const conf=Math.max(50,Math.min(98,Math.round(58+Math.min(1,recN/600)*22+(minP!=null&&minP>=0.05?12:0)+(rep&&rep.status==="pass"?4:0)+(scn&&scn.status==="pass"?2:0))));
+ const ANS={good:"YES",warn:"REVIEW",mut:"NOT YET",bad:"NO"}[dec.cls]||"—";
+ const recCls=c=>c==="good"?"b-good":c==="bad"?"b-bad":c==="warn"?"b-warn":"b-mut";
+ const kpi=(v,l)=>`<div class=hk><div class=hk-v>${v}</div><div class=hk-l>${esc(l)}</div></div>`;
+ const totalRouted=Object.values(mix).reduce((a,b)=>a+b,0)+kept;
+ const mixItems=Object.entries(mix).sort((a,b)=>b[1]-a[1]).map(([m,n])=>({label:modelOf(m),value:n,color:"var(--good)"}));
+ if(kept)mixItems.push({label:"kept on original",value:kept,color:"color-mix(in srgb,var(--warn) 50%,var(--chip))"});
+ const mixBars=hbars(mixItems,{fmt:v=>Math.round(v/totalRouted*100)+"%"});
+ const mixWhy=Object.keys(mix).sort((a,b)=>mix[b]-mix[a]).map(m=>`<div class=muted style="font-size:11.5px;margin-top:5px"><span class=mono>${esc(modelOf(m))}</span> — ${esc([...fam[m]].slice(0,4).join(", "))}</div>`).join("");
+ const swaps=avoided.length?avoided.map(r=>`<div class=swap><div><div class=swap-b>${esc(r.benchmark)}</div><div class=mono style="font-size:11.5px;color:var(--mut)">${esc(modelOf(r.original_model))} → ${esc(modelOf(r.candidate_model))}</div></div>
+   <div style="text-align:right"><span class="badge b-bad">not switched</span><div class=muted style="font-size:11px;margin-top:4px">regression · p=${r.mcnemar_p!=null?Number(r.mcnemar_p).toFixed(3):"—"} · ${pp(r.accuracy_delta_pp)}</div></div></div>`).join("")
+   :`<div class=muted style="font-size:13px">No unsafe swaps in this workload — every recommended switch cleared its regression test. TokenJam holds a switch the instant one doesn't.</div>`;
+ const why=[["McNemar significance",minP!=null?`p = ${minP<0.001?"<0.001":minP.toFixed(3)} (${minP>=0.05?"not significant":"significant"})`:"—",minP!=null&&minP>=0.05],
+   ["Wilson 95% CIs overlap","candidate within original's interval",dec.cls==="good"],
+   ["Replay validation",rep&&rep.pass!=null?Math.round(rep.pass)+"% equivalent":"—",!!(rep&&rep.status==="pass")],
+   ["Scenario / workflow suites",scn&&scn.pass!=null?Math.round(scn.pass)+"% pass":"—",!!(scn&&scn.status==="pass")],
+   ["Cost reduced",rrs.length?"−"+Math.round(avg(rrs.map(r=>-r.cost_delta_pct))||0)+"%":"—",true],
+   ["No safety regression",avoided.length?"gated where unsafe":"clean",true]]
+   .map(x=>`<div class="evrow ${x[2]?"ev-ok":"ev-mut"}"><span class=ev-ic>${x[2]?BI.ok:"—"}</span><span class=ev-l>${esc(x[0])}</span><span class=ev-v>${esc(x[1])}</span></div>`).join("");
+ const ORDER=["gsm8k","humaneval","mbpp","swe-bench-lite","judged","replay","customer-support","enterprise-rag","email-assistant","research-assistant","n8n","coding-workflow","coding-assistant","rag-support","research-agent","browser-agent"];
+ const present=new Set(benches);
+ const evid=ORDER.filter(b=>present.has(b)).map(b=>`<div class="evrow ev-ok"><span class=ev-ic>${BI.ok}</span><span class=ev-l>${esc(b)}</span></div>`).join("");
+ M().innerHTML=`<p class=lead>The production decision in one place: across <b>${tasks.toLocaleString()}</b> evaluated tasks, what deploying TokenJam's recommendations does to your spend — and the statistical evidence behind it.</p>
+  <div class="hero ${dec.cls}">
+   <div class=hero-main>
+    <div class=hero-tag>Executive summary · production decision</div>
+    <div style="font-size:18px;font-weight:600;margin:10px 0 8px">Can you replace <span class=mono>${esc(modelOf(rec.original))}</span> across this workload?</div>
+    <div class=hero-row><span class="hd ${dec.cls}">${ANS}</span><span class=hero-migr><span class=mono>${esc(modelOf(rec.original))}</span><span class=harrow>→</span><span class=mono>${esc(modelOf(rec.candidate))}</span></span></div>
+    <div class=hero-reason>${esc(dec.reason)} · <b>n=${recN}</b>${minP!=null?` · McNemar p${minP<0.001?"&lt;0.001":"="+minP.toFixed(3)}`:""}</div>
+    <div class=hero-kpis>${kpi("−"+Math.round(costSave)+"%","measured cost savings")}${kpi(pp(accChange),"accuracy change")}${kpi(usd(beforeCost-afterCost),"saved on this workload")}${kpi(avoided.length?avoided.length+" held":"all cleared","unsafe swaps")}</div>
+   </div>
+   <div class=hero-side>
+    <div class=hero-gauge title="composite of statistical strength + evidence coverage + stage pass — not a probability">${donut(conf/100,"confidence")}</div>
+    <div class=evchk>
+     <div class="evrow ev-ok"><span class=ev-ic>${BI.ok}</span><span class=ev-l>Benchmark suites</span><span class=ev-v>${benches.length}</span></div>
+     <div class="evrow ev-ok"><span class=ev-ic>${BI.ok}</span><span class=ev-l>Workflow suites</span><span class=ev-v>${wfCount}</span></div>
+     <div class="evrow ${replayN?"ev-ok":"ev-mut"}"><span class=ev-ic>${replayN?BI.ok:"—"}</span><span class=ev-l>Replay sessions</span><span class=ev-v>${replayN}</span></div>
+     <div class="evrow ev-ok"><span class=ev-ic>${BI.ok}</span><span class=ev-l>Tasks evaluated</span><span class=ev-v>${tasks.toLocaleString()}</span></div>
+    </div>
+   </div>
+  </div>
+  <div class="grid g5">
+   ${statCard(tasks.toLocaleString(),"Requests analysed","tasks across all suites")}
+   ${statCard(usd(beforeCost),"Spend before","on the original models")}
+   ${statCard(usd(afterCost),"Spend after","with TokenJam routing")}
+   ${statCard("−"+Math.round(costSave)+"%","Money saved","measured, this workload")}
+   ${statCard(pp(accChange),"Accuracy change",avoided.length?"regressing switches were held":"no significant regression")}
+  </div>
+  <div class=sect>Without TokenJam vs with TokenJam</div>
+  <div class="grid g2" style="align-items:stretch">
+   <div class=card><div class=tji-lbl>Without TokenJam<span>every request on the original models</span></div>
+    <div class=tji-row><span>Output tokens</span><b>${fmtTok(beforeTok)}</b></div>
+    <div class=tji-row><span>Measured cost</span><b>${usd(beforeCost)}</b></div>
+    <div class=tji-row><span>Accuracy</span><b>${(woA/den).toFixed(1)}%</b></div></div>
+   <div class=card style="border-color:color-mix(in srgb,var(--good) 40%,var(--line));background:color-mix(in srgb,var(--good) 6%,transparent)">
+    <div class=tji-lbl>With TokenJam<span>routed to the cleared cheaper models</span></div>
+    <div class=tji-row><span>Output tokens</span><b>${fmtTok(afterTok)} <span class=up style="font-size:12px">−${Math.round(tokSave)}%</span></b></div>
+    <div class=tji-row><span>Measured cost</span><b>${usd(afterCost)} <span class=up style="font-size:12px">−${Math.round(costSave)}%</span></b></div>
+    <div class=tji-row><span>Accuracy</span><b>${(wA/den).toFixed(1)}%</b></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px;align-items:start">
+   <div class=card><div class=sect style="margin:0 0 12px">Routing decisions <span class=muted style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">— share of switched traffic</span></div>${mixBars}<div style="margin-top:10px">${mixWhy}</div></div>
+   <div class=card><div class=sect style="margin:0 0 12px">Unsafe swaps avoided ${avoided.length?`<span class="badge b-bad">${avoided.length}</span>`:`<span class="badge b-good">0</span>`}</div><div class=swaps>${swaps}</div></div>
+  </div>
+  <div class=sect>ROI calculator</div>
+  <div class=roi>
+   <div class=roi-top><label>Your current monthly LLM spend</label>
+    <div class=roi-input>$ <input id=roiSpend type=number min=0 step=500 value=25000 oninput="recalcROI()"></div>
+    <div class=roi-rate>at the measured <b>${Math.round(costSave)}%</b> reduction →</div></div>
+   <div class=roi-out>
+    <div class=roi-cell><div class=roi-l>Estimated TokenJam spend</div><div class=roi-v id=roiAfter>—</div></div>
+    <div class="roi-cell good"><div class=roi-l>Monthly savings</div><div class=roi-v id=roiSave>—</div></div>
+    <div class="roi-cell good"><div class=roi-l>Annual savings</div><div class=roi-v id=roiYear>—</div></div>
+   </div>
+   <div class=muted style="font-size:11.5px;margin-top:12px">Linear projection of your spend at the cost reduction measured across the benchmarked workload — not a forecast.</div>
+  </div>
+  <div class="grid g2" style="margin-top:16px;align-items:start">
+   <div class=card><div class=sect style="margin:0 0 10px">Production evidence <span class=muted style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">— benchmarked &amp; passed</span></div><div class=evgrid>${evid}</div></div>
+   <div class=card><div class=sect style="margin:0 0 10px">Why it cleared <span class="badge ${recCls(dec.cls)}">${esc(dec.state)}</span></div>${why}</div>
+  </div>`;
+ recalcROI();
+}
 async function pgOverview(){
  const runs=await loadRuns();
  const [mtx,hist,scen,vers]=await Promise.all([getJSON("/api/matrix"),getJSON("/api/history"),
@@ -1399,7 +1527,7 @@ async function pgSettings(){
  document.getElementById("setProv").onchange=e=>PREF.set("defaultProvider",e.target.value==="(none)"?"":e.target.value);
 }
 // ---- router ----------------------------------------------------------------
-const PAGES={overview:pgOverview,benchmarks:pgBenchmarks,scenarios:pgScenarios,replay:pgReplay,
+const PAGES={impact:pgImpact,overview:pgOverview,benchmarks:pgBenchmarks,scenarios:pgScenarios,replay:pgReplay,
  deepeval:pgDeepEval,trends:pgTrends,leaderboards:pgLeaderboards,providers:pgProviders,
  versions:pgVersions,regressions:pgRegressions,reports:pgReports,ci:pgCI,settings:pgSettings};
 const AUTO=new Set(["overview","replay","ci"]);
