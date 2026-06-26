@@ -1,3 +1,15 @@
+# Evidence-backed validation reports
+
+> **Broadest run to date — [2026-06-26: 4 TokenJam downsize pairs across
+> Anthropic + OpenAI, objective suites at n=50](live/2026-06-26-multipair/README.md).**
+> Real pricing throughout (`priced_with_defaults=false` on all 18 artifacts).
+> The downsize holds on `gsm8k` for every pair, but the Anthropic `→ haiku-4-5`
+> pairs **significantly regress on `humaneval`** (McNemar p≈0.000) — the harness
+> catches exactly the case a flat "downsize is safe" claim would miss. Serve it
+> with `tjbench serve --dir docs/evidence/live/2026-06-26-multipair`.
+
+---
+
 # First evidence-backed validation report
 
 Live runs against **DeepSeek** (model-under-test) with **DeepEval + DeepSeek** as

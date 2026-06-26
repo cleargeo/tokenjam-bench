@@ -23,15 +23,23 @@ class AnthropicClient:
 
     def complete(self, prompt: str, system: str | None = None,
                  max_tokens: int = 1024, temperature: float = 0.0) -> Completion:
+        import anthropic
         kwargs: dict = {
             "model": self.model,
             "max_tokens": max_tokens,
-            "temperature": temperature,
             "messages": [{"role": "user", "content": prompt}],
         }
         if system:
             kwargs["system"] = system
-        resp = self._client.messages.create(**kwargs)
+        # `temperature` is rejected by some newer models (e.g. claude-opus-4-7,
+        # which deprecated it). Send it, but transparently retry without it if
+        # the API reports it unsupported, so the harness prices the real run.
+        try:
+            resp = self._client.messages.create(temperature=temperature, **kwargs)
+        except anthropic.BadRequestError as exc:
+            if "temperature" not in str(exc):
+                raise
+            resp = self._client.messages.create(**kwargs)
         text = "".join(
             block.text for block in resp.content if getattr(block, "type", None) == "text"
         )

@@ -1,0 +1,57 @@
+<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>TokenJam proof &mdash; judged proof</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--fg:#c9d1d9;--mut:#8b949e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:32px 20px}
+h1{font-size:20px;margin:0 0 4px} h2{font-size:14px;color:var(--mut);font-weight:600;margin:28px 0 10px;text-transform:uppercase;letter-spacing:.04em}
+.sub{color:var(--mut);margin:0 0 20px}
+.badge{display:inline-block;background:#1f6feb22;color:#58a6ff;border:1px solid #1f6feb55;border-radius:20px;padding:2px 10px;font-size:12px}
+.verdict{border-left:4px solid #8b949e;background:var(--panel);border-radius:6px;padding:14px 16px;margin:0 0 22px}
+.verdict b{color:#8b949e}
+.kpis{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 8px}
+.kpi{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.kpi .v{font-size:22px;font-weight:700} .kpi .l{color:var(--mut);font-size:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin:0 0 14px}
+.barrow{display:flex;align-items:center;gap:10px;margin:6px 0}
+.barlabel{width:78px;color:var(--mut)} .barval{font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.reg{color:#f85149;font-weight:600}
+ul.notes{color:var(--mut);font-size:12.5px;padding-left:18px} ul.notes li{margin:4px 0}
+h3{font-size:13px;color:var(--mut);font-weight:600;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.04em}
+.plain{background:var(--panel);border-radius:6px;padding:16px 18px;margin:0 0 18px}
+.plain-h{font-size:17px;font-weight:700;margin:0 0 6px}
+.plain-p{margin:6px 0;color:var(--fg)}
+.pass{color:#2ea043;font-weight:600} .fail{color:#f85149;font-weight:600}
+.score{color:var(--mut);font-size:11.5px;white-space:nowrap}
+.stathelp{color:var(--mut);font-size:12.5px;margin:0 0 14px}
+.foot{color:var(--mut);font-size:12px;margin-top:24px;border-top:1px solid var(--line);padding-top:12px}
+</style></head><body><div class=wrap>
+<h1>TokenJam proof &mdash; judged</h1>
+<p class=sub><span class=badge>tokenjam 0.5.2</span> &nbsp; n=5 tasks &middot; k=1 sample(s) &middot;
+openai:gpt-4o &rarr; openai:gpt-4o-mini</p>
+<div class="plain" style="border-left:4px solid #8b949e"><div class="plain-h" style="color:#8b949e">Not enough evidence yet</div><p class="plain-p">We ran the same <b>5</b> judged task(s) through both models and graded every answer with the same automated judge. The cheaper candidate (<b>gpt-4o-mini</b>) cost <b>93% less</b> than <b>gpt-4o</b>, and scored <b>20 points higher</b> on this suite &mdash; 40% of tasks passed before, 60% after.</p><p class="plain-p">Too few tasks were run to be statistically sure either way. Run more before deciding.</p></div>
+<div class=kpis><div class=kpi><div class=v>-93%</div><div class=l>cheaper to run (measured API&nbsp;$)</div></div><div class=kpi><div class=v>+20 pts</div><div class=l>accuracy vs the original model</div></div><div class=kpi><div class=v>0 worse &middot; 1 better</div><div class=l>tasks changed by the swap (of 5)</div></div></div>
+<h2>How each task did</h2><div class=panel><table>
+<tr><th>Task</th><th>Original</th><th>Cheaper&nbsp;model</th><th>Why &mdash; the judge&rsquo;s reason</th></tr>
+<tr><td>Refund policy</td><td><span class=fail>fail</span></td><td><span class=fail>fail</span></td><td>The actual output provides a general explanation of what a refund window is and <span class=score>graded 0.30 (needs 0.50)</span></td></tr><tr><td>Capital</td><td><span class=pass>pass</span></td><td><span class=pass>pass</span></td><td>The actual output matches the expected output exactly in terms of factual inform <span class=score>graded 1.00 (needs 0.50)</span></td></tr><tr><td>Retry summary</td><td><span class=pass>pass</span></td><td><span class=pass>pass</span></td><td>The actual output accurately reflects the factual information of the expected ou <span class=score>graded 0.90 (needs 0.50)</span></td></tr><tr><td>Shipping</td><td><span class=fail>fail</span></td><td><span class=fail>fail</span></td><td>The actual output provides a detailed breakdown of standard shipping times based <span class=score>graded 0.30 (needs 0.50)</span></td></tr><tr><td>Define llm</td><td><span class=fail>fail</span></td><td><span class=pass>pass</span></td><td>The actual output provides a broader description of a large language model, focu <span class=score>graded 0.50 (needs 0.50)</span></td></tr></table></div>
+<h2>The statistics behind it</h2>
+<div class=verdict>Verdict: <b>Insufficient evidence</b> &nbsp;&middot;&nbsp; McNemar p=1.000 (&alpha;=0.05)
+&nbsp;&middot;&nbsp; candidate chosen by explicit --candidate override</div>
+<p class=stathelp>McNemar&rsquo;s test asks whether the difference between the two models is bigger
+than chance: a p-value above 0.05 means the change is <b>not statistically significant</b>.
+The 95%&nbsp;CI on the pass-rate delta is the range the true difference is likely in &mdash; if it
+crosses zero, the direction isn&rsquo;t certain.</p>
+<div class=kpis>
+<div class=kpi><div class=v>+20.0pp</div><div class=l>pass-rate delta [95% CI -15.1, +55.1]</div></div>
+</div>
+<h3>Pass rate (95% CI whiskers)</h3><div class=panel><div class="barrow"><span class="barlabel">Original</span><svg width="360" height="22" class="bar"><rect x="0" y="4" width="360" height="14" rx="3" fill="#21262d"/><rect x="0" y="4" width="144.0" height="14" rx="3" fill="#58a6ff"/><line x1="42.3" y1="11" x2="276.9" y2="11" stroke="#c9d1d9" stroke-width="2"/><line x1="42.3" y1="6" x2="42.3" y2="16" stroke="#c9d1d9" stroke-width="2"/><line x1="276.9" y1="6" x2="276.9" y2="16" stroke="#c9d1d9" stroke-width="2"/></svg><span class="barval">2/5 (40%)</span></div><div class="barrow"><span class="barlabel">Candidate</span><svg width="360" height="22" class="bar"><rect x="0" y="4" width="360" height="14" rx="3" fill="#21262d"/><rect x="0" y="4" width="216.0" height="14" rx="3" fill="#79c0ff"/><line x1="83.1" y1="11" x2="317.7" y2="11" stroke="#c9d1d9" stroke-width="2"/><line x1="83.1" y1="6" x2="83.1" y2="16" stroke="#c9d1d9" stroke-width="2"/><line x1="317.7" y1="6" x2="317.7" y2="16" stroke="#c9d1d9" stroke-width="2"/></svg><span class="barval">3/5 (60%)</span></div></div>
+<h3>Cost (measured)</h3><div class=panel><div class="barrow"><span class="barlabel">Original</span><svg width="360" height="22" class="bar"><rect x="0" y="4" width="360" height="14" rx="3" fill="#21262d"/><rect x="0" y="4" width="360.0" height="14" rx="3" fill="#58a6ff"/></svg><span class="barval">$0.002610</span></div><div class="barrow"><span class="barlabel">Candidate</span><svg width="360" height="22" class="bar"><rect x="0" y="4" width="360" height="14" rx="3" fill="#21262d"/><rect x="0" y="4" width="25.2" height="14" rx="3" fill="#79c0ff"/></svg><span class="barval">$0.000182</span></div></div>
+<h2>How to read this</h2><ul class=notes><li>Accuracy is the pass-rate on THIS benchmark suite, not a general &ldquo;quality preserved&rdquo; claim. Confidence is the CI + p-value, not a single &ldquo;safe %&rdquo;.</li><li>Only n=5 tasks &mdash; too few for a significance verdict. Raise the task count for a defensible result.</li></ul>
+<div class=foot>Generated 2026-06-26 13:42 &middot; tokenjam-bench &middot; proof report</div>
+</div></body></html>

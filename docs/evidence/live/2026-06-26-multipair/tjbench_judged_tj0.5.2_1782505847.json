@@ -1,0 +1,111 @@
+{
+  "tokenjam_version": "0.5.2",
+  "tokenjam_location": "/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/tokenjam/__init__.py",
+  "benchmark": "judged",
+  "original_model": "anthropic:claude-opus-4-7",
+  "candidate_model": "anthropic:claude-haiku-4-5",
+  "recommended_by": "explicit --candidate override",
+  "n_tasks": 5,
+  "original_pass": 5,
+  "candidate_pass": 5,
+  "original_cost_usd": 0.00509,
+  "candidate_cost_usd": 0.0005688,
+  "original_output_tokens": 149,
+  "candidate_output_tokens": 99,
+  "mock": false,
+  "priced_with_defaults": false,
+  "stats": {
+    "samples_per_task": 1,
+    "original_ci_pp": [
+      56.55,
+      100.0
+    ],
+    "candidate_ci_pp": [
+      56.55,
+      100.0
+    ],
+    "delta_ci_pp": [
+      0.0,
+      0.0
+    ],
+    "mcnemar_b": 0,
+    "mcnemar_c": 0,
+    "mcnemar_p_value": 1.0,
+    "significant": false,
+    "alpha": 0.05,
+    "verdict": "insufficient_evidence",
+    "original_pass_at_1": 1.0,
+    "candidate_pass_at_1": 1.0
+  },
+  "created_at": 1782505847.3860412,
+  "tasks": [
+    {
+      "task_id": "judged/refund-policy",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.000705,
+      "candidate_cost_usd": 9.44e-05,
+      "original_output_tokens": 18,
+      "candidate_output_tokens": 15,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output matches the expected output exactly, ensuring factual accuracy",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output is factually accurate and semantically equivalent to the expec"
+    },
+    {
+      "task_id": "judged/capital",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.000575,
+      "candidate_cost_usd": 7.2e-05,
+      "original_output_tokens": 14,
+      "candidate_output_tokens": 11,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output is factually accurate and semantically equivalent to the expec",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output is factually accurate and semantically equivalent to the expec"
+    },
+    {
+      "task_id": "judged/retry-summary",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.000705,
+      "candidate_cost_usd": 0.0001232,
+      "original_output_tokens": 16,
+      "candidate_output_tokens": 21,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output matches the expected output exactly in terms of factual inform",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=0.90 (>= 0.5) \u2014 The actual output accurately reflects the factual information and meaning of the"
+    },
+    {
+      "task_id": "judged/shipping",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.00083,
+      "candidate_cost_usd": 9.68e-05,
+      "original_output_tokens": 22,
+      "candidate_output_tokens": 16,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output matches the expected output exactly, with no discrepancies in ",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output matches the expected output in terms of factual information, m"
+    },
+    {
+      "task_id": "judged/define-llm",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.002275,
+      "candidate_cost_usd": 0.0001824,
+      "original_output_tokens": 79,
+      "candidate_output_tokens": 36,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=0.70 (>= 0.5) \u2014 The actual output provides a more detailed explanation of what a large language ",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=0.70 (>= 0.5) \u2014 The actual output provides a more detailed explanation of a large language model"
+    }
+  ],
+  "original_pass_rate": 1.0,
+  "candidate_pass_rate": 1.0,
+  "accuracy_delta_pp": 0.0,
+  "cost_delta_pct": -88.83,
+  "regressions": 0,
+  "output_token_inflation": 0.664,
+  "token_inflation_flag": false,
+  "headline": "judged (n=5, k=1) \u00b7 tokenjam 0.5.2: anthropic:claude-opus-4-7 \u2192 anthropic:claude-haiku-4-5 \u00b7 \u0394cost -88.8% (measured) \u00b7 \u0394pass-rate +0.0pp [95% CI +0.0, +0.0] \u00b7 McNemar p=1.000 \u2192 insufficient_evidence"
+}
