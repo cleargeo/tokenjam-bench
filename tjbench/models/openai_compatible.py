@@ -73,6 +73,39 @@ def _make_openai_client(provider: OpenAICompatProvider):
     return openai.OpenAI(api_key=key, base_url=provider.base_url)
 
 
+def _chat_create(client, *, model: str, messages: list, max_tokens: int,
+                 temperature: float, tools: list | None = None):
+    """Call chat.completions.create, adapting to per-model parameter constraints.
+
+    Reasoning models (o3, o4-mini, …) reject `max_tokens` (require
+    `max_completion_tokens`, against which reasoning tokens are billed) and
+    only accept the default `temperature`. Rather than hard-code a model list,
+    we send the standard params and retry without the offending one when the
+    API reports it unsupported — so the same code prices every real run.
+    """
+    import openai
+    base: dict = {"model": model, "messages": messages}
+    if tools is not None:
+        base["tools"] = tools
+    token_key = "max_tokens"
+    send_temperature = True
+    while True:
+        kwargs = dict(base, **{token_key: max_tokens})
+        if send_temperature:
+            kwargs["temperature"] = temperature
+        try:
+            return client.chat.completions.create(**kwargs)
+        except openai.BadRequestError as exc:
+            msg = str(exc)
+            if token_key == "max_tokens" and "max_completion_tokens" in msg:
+                token_key = "max_completion_tokens"
+                continue
+            if send_temperature and "temperature" in msg:
+                send_temperature = False
+                continue
+            raise
+
+
 def _usage_tokens(usage) -> tuple[int, int, int]:
     cached = 0
     details = getattr(usage, "prompt_tokens_details", None)
@@ -99,9 +132,9 @@ class OpenAICompatibleClient:
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": strip_mock_directives(prompt)})
-        resp = client.chat.completions.create(
-            model=self.model, messages=messages, max_tokens=max_tokens,
-            temperature=temperature,
+        resp = _chat_create(
+            client, model=self.model, messages=messages,
+            max_tokens=max_tokens, temperature=temperature,
         )
         in_tok, out_tok, cached = _usage_tokens(resp.usage)
         return Completion(
@@ -155,10 +188,10 @@ class OpenAICompatibleAgentClient:
              temperature: float = 0.0, max_tokens: int = 1024) -> AssistantTurn:
         import json
         client = _make_openai_client(self._prov)
-        resp = client.chat.completions.create(
-            model=self.model, messages=self._to_openai_messages(messages),
+        resp = _chat_create(
+            client, model=self.model, messages=self._to_openai_messages(messages),
             tools=self._to_openai_tools(tools) or None,
-            temperature=temperature, max_tokens=max_tokens,
+            max_tokens=max_tokens, temperature=temperature,
         )
         choice = resp.choices[0].message
         calls = []

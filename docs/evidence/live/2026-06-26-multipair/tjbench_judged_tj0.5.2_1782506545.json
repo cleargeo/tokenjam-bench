@@ -1,0 +1,111 @@
+{
+  "tokenjam_version": "0.5.2",
+  "tokenjam_location": "/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/tokenjam/__init__.py",
+  "benchmark": "judged",
+  "original_model": "openai:gpt-4o",
+  "candidate_model": "openai:gpt-4o-mini",
+  "recommended_by": "explicit --candidate override",
+  "n_tasks": 5,
+  "original_pass": 2,
+  "candidate_pass": 3,
+  "original_cost_usd": 0.00261,
+  "candidate_cost_usd": 0.0001824,
+  "original_output_tokens": 241,
+  "candidate_output_tokens": 284,
+  "mock": false,
+  "priced_with_defaults": false,
+  "stats": {
+    "samples_per_task": 1,
+    "original_ci_pp": [
+      11.76,
+      76.93
+    ],
+    "candidate_ci_pp": [
+      23.07,
+      88.24
+    ],
+    "delta_ci_pp": [
+      -15.06,
+      55.06
+    ],
+    "mcnemar_b": 0,
+    "mcnemar_c": 1,
+    "mcnemar_p_value": 1.0,
+    "significant": false,
+    "alpha": 0.05,
+    "verdict": "insufficient_evidence",
+    "original_pass_at_1": 0.4,
+    "candidate_pass_at_1": 0.6
+  },
+  "created_at": 1782506545.8866649,
+  "tasks": [
+    {
+      "task_id": "judged/refund-policy",
+      "samples": 1,
+      "original_passes": 0,
+      "candidate_passes": 0,
+      "original_cost_usd": 0.0011425,
+      "candidate_cost_usd": 6.435e-05,
+      "original_output_tokens": 111,
+      "candidate_output_tokens": 104,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=0.30 (>= 0.5) \u2014 The actual output provides a detailed explanation of what a refund window is and",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=0.30 (>= 0.5) \u2014 The actual output provides a general explanation of what a refund window is and "
+    },
+    {
+      "task_id": "judged/capital",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.000105,
+      "candidate_cost_usd": 6.3e-06,
+      "original_output_tokens": 7,
+      "candidate_output_tokens": 7,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output matches the expected output exactly in terms of factual inform",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output matches the expected output exactly in terms of factual inform"
+    },
+    {
+      "task_id": "judged/retry-summary",
+      "samples": 1,
+      "original_passes": 1,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.0001775,
+      "candidate_cost_usd": 1.065e-05,
+      "original_output_tokens": 12,
+      "candidate_output_tokens": 12,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=1.00 (>= 0.5) \u2014 The actual output accurately reflects the factual information and meaning of the",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=0.90 (>= 0.5) \u2014 The actual output accurately reflects the factual information of the expected ou"
+    },
+    {
+      "task_id": "judged/shipping",
+      "samples": 1,
+      "original_passes": 0,
+      "candidate_passes": 0,
+      "original_cost_usd": 0.000845,
+      "candidate_cost_usd": 7.71e-05,
+      "original_output_tokens": 81,
+      "candidate_output_tokens": 125,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=0.40 (>= 0.5) \u2014 The actual output provides a broader and more detailed explanation of standard s",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=0.30 (>= 0.5) \u2014 The actual output provides a detailed breakdown of standard shipping times based"
+    },
+    {
+      "task_id": "judged/define-llm",
+      "samples": 1,
+      "original_passes": 0,
+      "candidate_passes": 1,
+      "original_cost_usd": 0.00034,
+      "candidate_cost_usd": 2.4e-05,
+      "original_output_tokens": 30,
+      "candidate_output_tokens": 36,
+      "original_detail": "deepeval:correctness@openai:gpt-4o score=0.30 (>= 0.5) \u2014 The actual output provides a broader description of a large language model, focu",
+      "candidate_detail": "deepeval:correctness@openai:gpt-4o score=0.50 (>= 0.5) \u2014 The actual output provides a broader description of a large language model, focu"
+    }
+  ],
+  "original_pass_rate": 0.4,
+  "candidate_pass_rate": 0.6,
+  "accuracy_delta_pp": 20.0,
+  "cost_delta_pct": -93.01,
+  "regressions": 0,
+  "output_token_inflation": 1.178,
+  "token_inflation_flag": false,
+  "headline": "judged (n=5, k=1) \u00b7 tokenjam 0.5.2: openai:gpt-4o \u2192 openai:gpt-4o-mini \u00b7 \u0394cost -93.0% (measured) \u00b7 \u0394pass-rate +20.0pp [95% CI -15.1, +55.1] \u00b7 McNemar p=1.000 \u2192 insufficient_evidence"
+}
