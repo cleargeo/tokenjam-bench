@@ -8,6 +8,11 @@ hedged verdict logic). Cost is computed from realistic token counts at real
 list prices. So the dashboard's numbers (CIs, p-values, savings, verdicts) are
 genuinely derived from the data — the data is just synthetic.
 
+DEV-ONLY: every artifact is stamped `demo: true`, and the production dashboard
+(`scan_runs`) skips mock/demo artifacts — so seeded data is invisible there. To
+populate the dashboard with *real* evidence, run `scripts/run_real_benchmarks.sh`
+against a live provider key instead. This script is for local UI iteration only.
+
 Run:  python3 demo/seed_demo.py    (from the repo root)
 """
 from __future__ import annotations

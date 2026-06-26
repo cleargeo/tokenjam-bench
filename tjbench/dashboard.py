@@ -46,12 +46,16 @@ _ENRICH_KEYS = (
 )
 
 
-def scan_runs(directory: str | Path) -> list[dict[str, Any]]:
+def scan_runs(directory: str | Path, include_dev: bool = False) -> list[dict[str, Any]]:
     """Summarize every proof artifact in `directory`, newest first.
 
     Carries the statistical block that already lives in each artifact (Wilson
     CIs, McNemar counts, measured costs) so the UI can render evidence-rich
     cards without any new query path or backend change.
+
+    Production-only by default: mock (`--mock`/dev) and demo (seeded-fixture)
+    artifacts are skipped so every dashboard number traces to a real measured
+    run. Pass `include_dev=True` to include them (local development).
     """
     runs: list[dict[str, Any]] = []
     for p in sorted(Path(directory).glob("*.json")):
@@ -60,6 +64,10 @@ def scan_runs(directory: str | Path) -> list[dict[str, Any]]:
         except (json.JSONDecodeError, OSError):
             continue
         if "tokenjam_version" not in d or "benchmark" not in d:
+            continue
+        # Production dashboards show real measured runs only — never mock
+        # (dev/--mock) or demo (seeded fixture) artifacts. include_dev=True opts in.
+        if not include_dev and (d.get("mock") or d.get("demo")):
             continue
         s = d.get("stats", {}) or {}
         cand_ci = s.get("candidate_ci_pp") or []

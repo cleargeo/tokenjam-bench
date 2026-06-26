@@ -34,6 +34,23 @@ def test_scan_empty_dir_is_safe(tmp_path):
     assert scan_runs(tmp_path) == []
 
 
+def test_scan_runs_hides_mock_and_demo_from_production(tmp_path):
+    # Production dashboards must show measured runs only — never mock (--mock/dev)
+    # or demo (seeded fixture) artifacts.
+    real = _artifact("gsm8k", created_at=300.0)
+    mock = {**_artifact("humaneval", created_at=200.0), "mock": True}
+    demo = {**_artifact("judged", created_at=100.0), "demo": True}
+    (tmp_path / "real.json").write_text(json.dumps(real))
+    (tmp_path / "mock.json").write_text(json.dumps(mock))
+    (tmp_path / "demo.json").write_text(json.dumps(demo))
+
+    prod = scan_runs(tmp_path)                       # default = production
+    assert [r["benchmark"] for r in prod] == ["gsm8k"]
+
+    everything = scan_runs(tmp_path, include_dev=True)   # dev opt-in
+    assert {r["benchmark"] for r in everything} == {"gsm8k", "humaneval", "judged"}
+
+
 def test_history_summary_empty_and_populated(tmp_path):
     from tjbench.dashboard import history_summary
     from tjbench.history import BenchmarkHistory
