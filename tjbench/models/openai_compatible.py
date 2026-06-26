@@ -52,19 +52,24 @@ def strip_mock_directives(text: str) -> str:
 
 
 def _make_openai_client(provider: OpenAICompatProvider):
-    """Build an OpenAI SDK client for a provider; key read from env, never stored."""
-    try:
-        import openai
-    except ImportError as exc:  # pragma: no cover
-        raise RuntimeError(
-            "The openai SDK is not installed. Run `pip install 'tokenjam-bench[providers]'`."
-        ) from exc
+    """Build an OpenAI SDK client for a provider; key read from env, never stored.
+
+    Config is validated *before* the optional SDK import: a missing key is the
+    common, actionable error, and checking it first keeps the message stable
+    whether or not the (optional) `providers` extra is installed.
+    """
     key = os.environ.get(provider.api_key_env)
     if not key:
         raise RuntimeError(
             f"{provider.api_key_env} is not set. Export it (it is read from the "
             f"environment only and never persisted)."
         )
+    try:
+        import openai
+    except ImportError as exc:
+        raise RuntimeError(
+            "The openai SDK is not installed. Run `pip install 'tokenjam-bench[providers]'`."
+        ) from exc
     return openai.OpenAI(api_key=key, base_url=provider.base_url)
 
 
