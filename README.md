@@ -1,7 +1,7 @@
 <div align="center">
 
 <picture>
-  <img src="docs/brand/tokenjam-bench.png" alt="TokenJam Bench" width="420">
+  <img src="docs/brand/tokenjam-bench-banner.png" alt="TokenJam Bench" width="420">
 </picture>
 
 ## Evidence-based LLM benchmarking
