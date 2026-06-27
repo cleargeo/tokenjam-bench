@@ -21,5 +21,7 @@ jobs:
         run: ruff check .
       - name: Tests (all offline / mock)
         run: pytest -q
+      - name: Honesty guard (no placeholder-priced headlines / banned overclaims)
+        run: pytest -q tests/test_honesty_guard.py
       - name: Offline proof smoke (pipeline produces a valid stamped proof)
         run: python -m tjbench.ci_benchmark
