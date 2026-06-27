@@ -11,6 +11,11 @@ results/*.duckdb
 results/*.duckdb.wal
 !results/.gitkeep
 
+# `tjb serve` writes a local history index next to whatever dir it serves
+# (e.g. docs/evidence/…); never commit that byproduct.
+history.duckdb
+history.duckdb.wal
+
 # DeepEval local cache/config (created on a live judge run)
 .deepeval/
 .deepeval-cache.json

@@ -31,23 +31,19 @@ REPO = Path(__file__).resolve().parents[1]
 # Directories searched for committed proof artifacts.
 ARTIFACT_ROOTS = ("docs/evidence", "results")
 
-# Legacy pre-multipair DeepSeek runs (placeholder-priced); to be archived out of
-# the headline path in the furniture pass — remove this allowlist entry once they
-# move to docs/evidence/archive/.  (DeepSeek has no TokenJam rate, so these were
-# priced with the $0.50/$2.00 default; they predate the honestly-priced
-# 2026-06-26-multipair set and must not block the guard until Brief D relocates
-# them.  Matched as EXACT parent directories so the live multipair set — which
-# lives under docs/evidence/live/ too — is still fully checked.)
-PRICED_WITH_DEFAULTS_ALLOWLIST = {
-    "docs/evidence/live",
-    "docs/evidence/live/2026-06-26-real-dashboard",
-}
+
+def _is_archived(path: Path) -> bool:
+    """Artifacts under an `archive/` directory are a historical record, never
+    headline/dashboard data — exactly how `scan_runs()` (tjbench/dashboard.py)
+    treats them. The legacy placeholder-priced DeepSeek runs live there, so the
+    guard scans them but does not flag them (no allowlist exception needed)."""
+    return "archive" in path.relative_to(REPO).parts
 
 
 def _proof_artifacts() -> list[Path]:
     files: list[Path] = []
     for root in ARTIFACT_ROOTS:
-        files.extend((REPO / root).rglob("*.json"))
+        files.extend(p for p in (REPO / root).rglob("*.json") if not _is_archived(p))
     return sorted(files)
 
 
@@ -72,16 +68,14 @@ def test_no_placeholder_priced_headlines() -> None:
             continue
         if d.get("priced_with_defaults") is not True:
             continue
-        parent = path.parent.relative_to(REPO).as_posix()
-        if parent in PRICED_WITH_DEFAULTS_ALLOWLIST:
-            continue
         offenders.append(path.relative_to(REPO).as_posix())
 
     assert not offenders, (
         "Dashboard-surfaced artifacts priced with TokenJam's $0.50/$2.00 "
         "placeholder rates (priced_with_defaults=true) — a placeholder cost must "
-        "never headline. Re-run with real rates, or (legacy only) archive them "
-        "out of the headline path:\n  " + "\n  ".join(offenders)
+        "never headline. Re-run with real rates, or (legacy only) move them to "
+        "docs/evidence/archive/ (out of the headline path):\n  "
+        + "\n  ".join(offenders)
     )
 
 
@@ -124,21 +118,21 @@ _NEGATION = re.compile(
     re.IGNORECASE,
 )
 
-# tjbench/dashboard.py is intentionally NOT scanned yet: it still contains banned
-# strings until Brief A's dashboard rebuild lands. Grepping it now would red-CI
-# this branch. Add it to SCAN_ROOTS in a follow-up commit AFTER Brief A merges
-# (see Brief C). The one-line change is documented here on purpose.
-DEFERRED_UNTIL_BRIEF_A = ("tjbench/dashboard.py",)
+# Single source files scanned in addition to the SCAN_ROOTS trees. The dashboard
+# is the most marketing-prone surface, so it is grepped explicitly. (Brief A's
+# rebuild removed the banned widgets/strings it used to carry; this guard now
+# keeps it clean.)
+SCAN_FILES = ("README.md", "tjbench/dashboard.py")
 
-# What to scan now: the README + everything under docs/ and results/ (markdown,
-# HTML reports, JSON artifacts). tests/ is deliberately excluded so this file's
-# own pattern literals never self-trigger.
+# What to scan: the explicit files above + everything under docs/ and results/
+# (markdown, HTML reports, JSON artifacts). tests/ is deliberately excluded so
+# this file's own pattern literals never self-trigger.
 SCAN_ROOTS = ("docs", "results")
 SCAN_SUFFIXES = {".md", ".html", ".htm", ".json", ".txt", ".toml", ".rst"}
 
 
 def _scan_files() -> list[Path]:
-    files = [REPO / "README.md"]
+    files = [REPO / f for f in SCAN_FILES]
     for root in SCAN_ROOTS:
         for p in (REPO / root).rglob("*"):
             if p.is_file() and p.suffix.lower() in SCAN_SUFFIXES:

@@ -16,7 +16,7 @@
 # Usage:
 #   export DEEPSEEK_API_KEY=sk-...
 #   ./scripts/run_real_benchmarks.sh
-#   tjbench serve   # dashboard now reads these real artifacts
+#   tjb serve   # dashboard now reads these real artifacts
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -39,14 +39,15 @@ run run --benchmark humaneval --limit "$LIMIT"
 # LLM-judged QA (DeepEval judge selected by TJBENCH_JUDGE):
 run run --benchmark judged
 
-# Production text workflows (judge-scored against grounded references):
+# Production text workflows (judge-scored against grounded references). These
+# resolve through `run` now that the standalone `workflow` command was merged in.
 for s in customer-support enterprise-rag email-assistant research-assistant; do
-  run workflow "$s" --limit "$LIMIT"
+  run run --benchmark "$s" --limit "$LIMIT"
 done
 
 echo
 echo "Done. Versioned JSON + HTML artifacts in ${OUT}/."
-echo "Restart 'tjbench serve' to refresh the dashboard from these real runs."
+echo "Restart 'tjb serve' to refresh the dashboard from these real runs."
 
 # Not benchmarkable with a DeepSeek-only key (documented limitation):
 #   - mbpp: no real loader yet (add an MBPPBenchmark like humaneval).

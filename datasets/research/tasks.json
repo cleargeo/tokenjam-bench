@@ -134,12 +134,12 @@
     },
     {
       "id": "research/recommendation",
-      "question": "Based on the sources, give a one-paragraph recommendation on whether to adopt continuous benchmarking.",
+      "question": "Based on the sources, give a one-paragraph recommendation on whether the company should adopt a four-day work week.",
       "knowledge_context": [
-        "Source A: teams that re-benchmarked on every model/version change caught regressions before production.",
-        "Source B: ad-hoc evaluation missed regressions that surfaced as customer-visible incidents."
+        "Source A: a six-month trial reported output held roughly flat and voluntary attrition fell.",
+        "Source B: a separate rollout found cross-team coordination and client coverage suffered, especially for support and on-call roles."
       ],
-      "expected_response": "Adopt continuous benchmarking: the sources show teams that re-benchmarked on every model or version change caught regressions before they reached production, whereas ad-hoc evaluation let regressions slip through and surface as customer-visible incidents. The evidence favors automated, recurring evaluation over one-off checks [Source A; Source B].",
+      "expected_response": "The sources point in different directions, so the recommendation is conditional rather than a blanket yes. Source A's trial saw output hold roughly flat with lower voluntary attrition, while Source B found coordination and client-coverage gaps, particularly for support and on-call roles. A reasonable read is to pilot a four-day week for teams whose work is asynchronous and not coverage-bound, keep staggered schedules for support and on-call, and measure output and coverage before expanding [Source A; Source B].",
       "sources": ["Source A", "Source B"],
       "category": "Recommendation",
       "difficulty": "medium"
