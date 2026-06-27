@@ -1,15 +1,15 @@
 <div align="center">
 
 <picture>
-  <img src="Assets/ChatGPT Image Jun 25, 2026, 05_31_49 PM.png" alt="tokenjam-bench" width="350">
+  <img src="docs/brand/tokenjam-bench.png" alt="TokenJam Bench" width="420">
 </picture>
 
-## Evidence-Based LLM Benchmarking
+## Evidence-based LLM benchmarking
 
-Proves the effect of TokenJam's recommendations on cost AND accuracy using executable benchmarks as objective ground truth.
+Does TokenJam's "downsize this model" recommendation hold up? This runs the cheaper model against executable benchmarks and tells you, with statistics, where it keeps up and where it breaks.
 
-[![CI](https://github.com/HoomanDigital/tokenjam-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/HoomanDigital/tokenjam-benchmark/actions)
-[![Tests](https://img.shields.io/badge/tests-75_passing-brightgreen?labelColor=0d1117)](tests/)
+[![CI](https://github.com/Metabuilder-Labs/tokenjam-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/Metabuilder-Labs/tokenjam-bench/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen?labelColor=0d1117)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3d8eff?labelColor=0d1117)](pyproject.toml)
 [![TokenJam](https://img.shields.io/badge/tokenjam-%3E%3D0.5-3d8eff?labelColor=0d1117)](https://pypi.org/project/tokenjam/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3d8eff?labelColor=0d1117)](LICENSE)
@@ -45,24 +45,20 @@ benchmark tasks ─▶ run on ORIGINAL model ─▶ score (pass/fail) + cost
 
 ---
 
-## First real evidence
+## Real evidence: downsizing Claude to Haiku breaks code, not math
 
-Live runs: `deepseek-reasoner` (premium) → `deepseek-chat` (cheaper), judged by DeepEval + DeepSeek.
+The 2026-06-26 multipair run benchmarked 18 model-pair × suite configurations at real measured rates (tokenjam 0.5.2). The sharpest result comes from routing `claude-opus-4-7` down to `claude-haiku-4-5`. The cheaper model costs far less. It holds on grade-school math and falls apart on code.
 
-### HumanEval — executable pass/fail (n=20)
+| suite | pass rate (opus → haiku) | Δ accuracy [95% CI] | measured cost Δ | McNemar | verdict |
+|---|---|---|---|---|---|
+| HumanEval (code) | 90% → 56% | −34pp [−47.1, −20.9] | −81.6% | p&lt;0.001 | **`significant_regression`** |
+| GSM8K (math) | 98% → 96% | −2pp [−5.9, +1.9] | −59.2% | p=1.000 | `no_significant_regression` |
 
-| | Original (`deepseek-reasoner`) | Candidate (`deepseek-chat`) |
-|---|---|---|
-| Pass rate (95% Wilson CI) | 19/20 (76–99%) | **20/20 (84–100%)** |
-| Cost (measured, real rates) | $0.01500 | **$0.00366** |
+Same downsize, opposite calls. On code the bench flags a regression you would not want to ship. On math the cheaper model is statistically indistinguishable from the original while costing about 60% less. Reporting a single blended "accuracy" would have hidden both facts, so the bench reports per benchmark and lets the McNemar test decide each one.
 
-**Δ cost: −75.6%** (measured) · **Δ pass-rate: +5.0pp** (CI −4.5 … +14.6)
+The same code regression shows up for `claude-sonnet-4-6 → claude-haiku-4-5` (94% → 56%, `significant_regression`). The `gpt-4o → gpt-4o-mini` and `o3 → o4-mini` downsizes pass HumanEval at this sample size.
 
-McNemar: b=0 broken, c=1 fixed, p=1.000 → **`no_significant_regression`**
-
-> On this 20-task sample, downsizing cut measured cost ~76% with no statistically significant accuracy regression. Accuracy = pass-rate on this suite only — not a general quality claim.
-
-Full artifacts: [`docs/evidence/`](docs/evidence/)
+Full run (18 configs, 7 suites, real rates): [`docs/evidence/live/2026-06-26-multipair/`](docs/evidence/live/2026-06-26-multipair/). Browse it with `tjb serve`.
 
 ---
 
@@ -278,6 +274,28 @@ Accuracy = pass-rate on the chosen benchmark suite — never a general "quality 
 
 ---
 
+## FAQ
+
+**Does a passing verdict mean the cheaper model is safe to deploy?**
+No. A verdict is the pass-rate on a specific suite plus a McNemar test. `no_significant_regression` means the bench did not detect a drop on that suite at this sample size. It is not a runtime safety certification, and it says nothing about inputs outside the measured set.
+
+**Why did the same downsize pass on math and fail on code?**
+Accuracy is per-suite. `claude-haiku-4-5` matched the original on GSM8K and dropped 34 points on HumanEval. A single blended number would bury that, so the bench scores each benchmark on its own.
+
+**Do I need API keys?**
+No. `tjb run` is offline-first: with no provider key set it auto-enables mock mode and still writes a stamped artifact. Add a key like `ANTHROPIC_API_KEY` to run for real.
+
+**What are the verdicts, and why no confidence score?**
+The three are `no_significant_regression`, `significant_regression`, and `insufficient_evidence`. There is no single confidence percentage on purpose. The honest expression of certainty is the Wilson CI plus the McNemar p-value.
+
+**Why are some old runs priced with default rates?**
+A provider without a TokenJam rate falls back to a $0.50/$2.00 placeholder. Those runs are flagged and kept under `docs/evidence/archive/`, out of the dashboard's headline path. The 2026-06-26 multipair run uses real rates.
+
+**How is this a proof of TokenJam and not a generic comparison?**
+The candidate model and the cost rates both come from the installed `tokenjam` package, and every artifact is stamped with the exact version that produced it.
+
+---
+
 ## Project Layout
 
 ```
@@ -328,9 +346,11 @@ agents/               Multi-turn agent execution
   validation.py       validate_tools — safety gate
 
 results/              Version-stamped JSON + HTML proof artifacts
-docs/                 Full documentation (14 files)
-docs/evidence/        First real proof runs (HumanEval + judged, DeepSeek)
-tests/                Offline pytest suite (16 files, 75 tests)
+docs/                 Full documentation
+docs/brand/           Logo lockup + jar icon (SVG + PNG)
+docs/evidence/        Real proof runs; headline set in live/2026-06-26-multipair/
+docs/evidence/archive/  Pre-multipair runs, kept for provenance (non-headline)
+tests/                Offline pytest suite (no keys, no network)
 ```
 
 ---

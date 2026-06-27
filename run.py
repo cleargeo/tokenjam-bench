@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run tjbench from source.
+"""Run tjb from source.
 
     python3 run.py serve --open
     python3 run.py run --benchmark humaneval --original deepseek:deepseek-reasoner \

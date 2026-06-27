@@ -1,6 +1,8 @@
 name: ci
 
-# Always-on gate: lint + tests + an offline proof. No keys, no spend.
+# Always-on gate: lint + tests + an offline proof, across supported Pythons.
+# No keys, no spend. (Branch-protection / required-review rules are a GitHub-UI
+# setting configured at the public flip — not expressible here.)
 on:
   push:
     branches: [main]
@@ -10,18 +12,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    name: test (py${{ matrix.python-version }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
       - name: Install (consumes tokenjam exactly like an external user)
         run: pip install -e ".[dev]"
       - name: Lint
         run: ruff check .
-      - name: Tests (all offline / mock)
+      # `pytest -q` runs the full offline suite, which INCLUDES the Brief C
+      # honesty guard (tests/test_honesty_guard.py): no placeholder-priced
+      # headlines, no banned overclaim strings in README/docs/dashboard.
+      - name: Tests (all offline / mock, incl. honesty guard)
         run: pytest -q
-      - name: Honesty guard (no placeholder-priced headlines / banned overclaims)
-        run: pytest -q tests/test_honesty_guard.py
       - name: Offline proof smoke (pipeline produces a valid stamped proof)
         run: python -m tjbench.ci_benchmark
