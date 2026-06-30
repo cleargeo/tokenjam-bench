@@ -14,6 +14,13 @@ ruff check .    # lint
 
 Supported Python: 3.10, 3.11, 3.12. CI runs the suite on all three.
 
+The `pip install -e ".[dev]"` above is the **contributor** install — editable
+installs correctly stay `pip`. The **end-user** install is
+`pipx install tokenjam-bench` (pipx isolates the `tjb` CLI and sidesteps the
+PEP-668 "externally-managed-environment" error on Homebrew Python and Debian
+12+/Ubuntu 24+). When you touch user-facing docs, keep `pipx` primary — don't
+reintroduce a bare `pip install tokenjam-bench` as the headline install.
+
 Run the app to see your change:
 
 ```bash
@@ -23,8 +30,8 @@ tjb serve       # dashboard over the bundled real evidence
 
 ## The honesty rules (enforced in CI)
 
-`tests/test_honesty_guard.py` fails CI if a change reintroduces a dishonest
-surface. Before you open a PR:
+The honesty guard [`tests/test_honesty_guard.py`](tests/test_honesty_guard.py)
+fails CI if a change reintroduces a dishonest surface. Before you open a PR:
 
 - No headline/dashboard number may come from a placeholder-priced run
   (`priced_with_defaults=true`). Re-run with real rates, or keep legacy runs

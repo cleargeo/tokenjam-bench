@@ -15,8 +15,10 @@ Does TokenJam's "downsize this model" recommendation hold up? TokenJam Bench run
 [![License: MIT](https://img.shields.io/badge/license-MIT-3d8eff?labelColor=0d1117)](LICENSE)
 
 ```bash
-pip install tokenjam-bench
+pipx install tokenjam-bench
 ```
+
+<sub>Don't have pipx? `brew install pipx` on macOS, `apt install pipx` on Debian/Ubuntu. `pip install tokenjam-bench` also works in a clean venv.</sub>
 
 **No cloud · No signup · Runs Locally**
 
