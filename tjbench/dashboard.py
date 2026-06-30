@@ -650,7 +650,7 @@ async function pgOverview(){
  // status banner (honest, from real verdicts)
  let banner;
  if(anyReg)banner='<div class="banner bad"><div class=bi>'+BI.bad+'</div><div><b>Significant regression detected.</b>'+
-   '<div class=bsub>'+held.length+' config'+(held.length===1?"":"s")+' show a statistically significant pass-rate drop. See the Regression Center.</div></div></div>';
+   '<div class=bsub>'+held.length+' config'+(held.length===1?' shows':'s show')+' a statistically significant pass-rate drop. See the Regression Center.</div></div></div>';
  else banner='<div class="banner ok"><div class=bi>'+BI.ok+'</div><div><b>No significant regression.</b>'+
    '<div class=bsub>Every measured config is within statistical noise of its original on the benchmarks run so far.</div></div></div>';
  // measured-cost stat row (no extrapolation, no "money saved")
