@@ -27,6 +27,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+from tjbench.bench_meta import __version__ as BENCH_VERSION
 from tjbench.report_html import render_html_from_dict
 
 
@@ -218,7 +219,8 @@ def serve(directory: str | Path = "results", host: str = "127.0.0.1",
                 self._send(json.dumps(history_summary(root / "history.duckdb")).encode(),
                            "application/json")
             elif path == "/api/info":
-                self._send(json.dumps({"directory": str(root)}).encode(),
+                self._send(json.dumps({"directory": str(root),
+                                       "version": BENCH_VERSION}).encode(),
                            "application/json")
             elif path.startswith("/raw/"):
                 self._serve_raw(path)
@@ -312,7 +314,7 @@ def serve(directory: str | Path = "results", host: str = "127.0.0.1",
 _DASHBOARD_HTML = r"""<!doctype html><html lang=en data-theme=dark><head><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <title>TokenJam Bench</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjU0IDMyIDEzMiAxMzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSI3IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgo8cmVjdCB4PSI3NCIgeT0iNDQiIHdpZHRoPSI5MiIgaGVpZ2h0PSIyMCIgcng9IjYiIHJ5PSI2Ii8+CjxwYXRoIGQ9Ik0gMTA0IDcyIEwgNzQgNzIgTCA3NCAxNTIgTCAxMDQgMTUyIi8+CjxwYXRoIGQ9Ik0gMTM2IDcyIEwgMTY2IDcyIEwgMTY2IDE1MiBMIDEzNiAxNTIiLz4KPGcgZmlsbD0iIzAwMCIgc3Ryb2tlPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgo8cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4NS42OCwxMDQpIiBkPSJNMjEuMTksLTE0LjMyIEwxNi43NSwtMC4wMCBMMTMuNjMsLTAuMDAgTDEwLjc0LC0xMC41OCBMNy44NSwtMC4wMCBMNC43MywtMC4wMCBMMC4yNiwtMTQuMzIgTDMuMjcsLTE0LjMyIEw2LjI2LC0yLjgxIEw5LjMxLC0xNC4zMiBMMTIuNDAsLTE0LjMyIEwxNS4zMiwtMi44NiBMMTguMjgsLTE0LjMyIEwyMS4xOSwtMTQuMzIgWiIvPgo8cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMDYuODMsMTA3KSIgZD0iTTAuNTQsLTcuNTAgTDAuNTQsLTguNzUgTDMuMDQsLTguNzUgTDMuMDQsLTAuMDAgTDEuNjYsLTAuMDAgTDEuNjYsLTcuNTAgTDAuNTQsLTcuNTAgWiBNNC43NCwtNy41MCBMNC43NCwtOC43NSBMNy4yNCwtOC43NSBMNy4yNCwtMC4wMCBMNS44NiwtMC4wMCBMNS44NiwtNy41MCBMNC43NCwtNy41MCBaIi8+CjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyMy45NywxMDQpIiBkPSJNMjEuMTksLTE0LjMyIEwxNi43NSwtMC4wMCBMMTMuNjMsLTAuMDAgTDEwLjc0LC0xMC41OCBMNy44NSwtMC4wMCBMNC43MywtMC4wMCBMMC4yNiwtMTQuMzIgTDMuMjcsLTE0LjMyIEw2LjI2LC0yLjgxIEw5LjMxLC0xNC4zMiBMMTIuNDAsLTE0LjMyIEwxNS4zMiwtMi44NiBMMTguMjgsLTE0LjMyIEwyMS4xOSwtMTQuMzIgWiIvPgo8cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNDUuMTIsMTA3KSIgZD0iTTAuNTQsLTcuNTAgTDAuNTQsLTguNzUgTDMuMDQsLTguNzUgTDMuMDQsLTAuMDAgTDEuNjYsLTAuMDAgTDEuNjYsLTcuNTAgTDAuNTQsLTcuNTAgWiBNNS42OCwtMS44NiBRNi44MywtMi44NiA3LjQ5LC0zLjUwIFE4LjE2LC00LjE0IDguNjAsLTQuODQgUTkuMDUsLTUuNTMgOS4wNSwtNi4yMyBROS4wNSwtNi45NSA4LjcxLC03LjM2IFE4LjM2LC03Ljc2IDcuNjMsLTcuNzYgUTYuOTIsLTcuNzYgNi41MywtNy4zMSBRNi4xNCwtNi44NiA2LjEyLC02LjExIEw0LjgwLC02LjExIFE0Ljg0LC03LjQ4IDUuNjIsLTguMjAgUTYuNDEsLTguOTMgNy42MiwtOC45MyBROC45MywtOC45MyA5LjY3LC04LjIxIFExMC40MCwtNy40OSAxMC40MCwtNi4yOSBRMTAuNDAsLTUuNDIgOS45NywtNC42MyBROS41MywtMy44MyA4LjkyLC0zLjIwIFE4LjMyLC0yLjU3IDcuMzgsLTEuNzQgTDYuODQsLTEuMjYgTDEwLjY0LC0xLjI2IEwxMC42NCwtMC4xMiBMNC44MSwtMC4xMiBMNC44MSwtMS4xMiBMNS42OCwtMS44NiBaIi8+CjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg0LjM1LDEyOCkiIGQ9Ik0yMS4xOSwtMTQuMzIgTDE2Ljc1LC0wLjAwIEwxMy42MywtMC4wMCBMMTAuNzQsLTEwLjU4IEw3Ljg1LC0wLjAwIEw0LjczLC0wLjAwIEwwLjI2LC0xNC4zMiBMMy4yNywtMTQuMzIgTDYuMjYsLTIuODEgTDkuMzEsLTE0LjMyIEwxMi40MCwtMTQuMzIgTDE1LjMyLC0yLjg2IEwxOC4yOCwtMTQuMzIgTDIxLjE5LC0xNC4zMiBaIi8+CjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwNS40NCwxMzEpIiBkPSJNMS40OCwtMS44NiBRMi42MywtMi44NiAzLjI5LC0zLjUwIFEzLjk2LC00LjE0IDQuNDAsLTQuODQgUTQuODUsLTUuNTMgNC44NSwtNi4yMyBRNC44NSwtNi45NSA0LjUxLC03LjM2IFE0LjE2LC03Ljc2IDMuNDMsLTcuNzYgUTIuNzIsLTcuNzYgMi4zMywtNy4zMSBRMS45NCwtNi44NiAxLjkyLC02LjExIEwwLjYwLC02LjExIFEwLjY0LC03LjQ4IDEuNDIsLTguMjAgUTIuMjEsLTguOTMgMy40MiwtOC45MyBRNC43MywtOC45MyA1LjQ3LC04LjIxIFE2LjIwLC03LjQ5IDYuMjAsLTYuMjkgUTYuMjAsLTUuNDIgNS43NywtNC42MyBRNS4zMywtMy44MyA0LjcyLC0zLjIwIFE0LjEyLC0yLjU3IDMuMTgsLTEuNzQgTDIuNjQsLTEuMjYgTDYuNDQsLTEuMjYgTDYuNDQsLTAuMTIgTDAuNjEsLTAuMTIgTDAuNjEsLTEuMTIgTDEuNDgsLTEuODYgWiBNNy40NiwtNy41MCBMNy40NiwtOC43NSBMOS45NiwtOC43NSBMOS45NiwtMC4wMCBMOC41OCwtMC4wMCBMOC41OCwtNy41MCBMNy40NiwtNy41MCBaIi8+CjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyMi42NCwxMjgpIiBkPSJNMjEuMTksLTE0LjMyIEwxNi43NSwtMC4wMCBMMTMuNjMsLTAuMDAgTDEwLjc0LC0xMC41OCBMNy44NSwtMC4wMCBMNC43MywtMC4wMCBMMC4yNiwtMTQuMzIgTDMuMjcsLTE0LjMyIEw2LjI2LC0yLjgxIEw5LjMxLC0xNC4zMiBMMTIuNDAsLTE0LjMyIEwxNS4zMiwtMi44NiBMMTguMjgsLTE0LjMyIEwyMS4xOSwtMTQuMzIgWiIvPgo8cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNDMuNzMsMTMxKSIgZD0iTTEuNDgsLTEuODYgUTIuNjMsLTIuODYgMy4yOSwtMy41MCBRMy45NiwtNC4xNCA0LjQwLC00Ljg0IFE0Ljg1LC01LjUzIDQuODUsLTYuMjMgUTQuODUsLTYuOTUgNC41MSwtNy4zNiBRNC4xNiwtNy43NiAzLjQzLC03Ljc2IFEyLjcyLC03Ljc2IDIuMzMsLTcuMzEgUTEuOTQsLTYuODYgMS45MiwtNi4xMSBMMC42MCwtNi4xMSBRMC42NCwtNy40OCAxLjQyLC04LjIwIFEyLjIxLC04LjkzIDMuNDIsLTguOTMgUTQuNzMsLTguOTMgNS40NywtOC4yMSBRNi4yMCwtNy40OSA2LjIwLC02LjI5IFE2LjIwLC01LjQyIDUuNzcsLTQuNjMgUTUuMzMsLTMuODMgNC43MiwtMy4yMCBRNC4xMiwtMi41NyAzLjE4LC0xLjc0IEwyLjY0LC0xLjI2IEw2LjQ0LC0xLjI2IEw2LjQ0LC0wLjEyIEwwLjYxLC0wLjEyIEwwLjYxLC0xLjEyIEwxLjQ4LC0xLjg2IFogTTguNDAsLTEuODYgUTkuNTUsLTIuODYgMTAuMjIsLTMuNTAgUTEwLjg4LC00LjE0IDExLjMzLC00Ljg0IFExMS43NywtNS41MyAxMS43NywtNi4yMyBRMTEuNzcsLTYuOTUgMTEuNDMsLTcuMzYgUTExLjA5LC03Ljc2IDEwLjM2LC03Ljc2IFE5LjY1LC03Ljc2IDkuMjYsLTcuMzEgUTguODcsLTYuODYgOC44NCwtNi4xMSBMNy41MiwtNi4xMSBRNy41NiwtNy40OCA4LjM1LC04LjIwIFE5LjEzLC04LjkzIDEwLjM0LC04LjkzIFExMS42NSwtOC45MyAxMi4zOSwtOC4yMSBRMTMuMTMsLTcuNDkgMTMuMTMsLTYuMjkgUTEzLjEzLC01LjQyIDEyLjY5LC00LjYzIFExMi4yNSwtMy44MyAxMS42NSwtMy4yMCBRMTEuMDQsLTIuNTcgMTAuMTAsLTEuNzQgTDkuNTYsLTEuMjYgTDEzLjM3LC0xLjI2IEwxMy4zNywtMC4xMiBMNy41NCwtMC4xMiBMNy41NCwtMS4xMiBMOC40MCwtMS44NiBaIi8+CjwvZz4KPC9zdmc+">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjUwIDMwIDE1NiAxNTgiIGZpbGw9Im5vbmUiPjxzdHlsZT46cm9vdHtjb2xvcjojMTExfUBtZWRpYSAocHJlZmVycy1jb2xvci1zY2hlbWU6ZGFyayl7OnJvb3R7Y29sb3I6I2U4ZThlOH19PC9zdHlsZT4gPGcgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iNyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4gPHJlY3QgeD0iNzQiIHk9IjQ0IiB3aWR0aD0iOTIiIGhlaWdodD0iMjAiIHJ4PSI2IiByeT0iNiIvPiA8cGF0aCBkPSJNIDEwNCA3MiBMIDc0IDcyIEwgNzQgMTUyIEwgMTA0IDE1MiIvPiA8cGF0aCBkPSJNIDEzNiA3MiBMIDE2NiA3MiBMIDE2NiAxNTIgTCAxMzYgMTUyIi8+IDwvZz4gPGcgZmlsbD0iY3VycmVudENvbG9yIiBzdHJva2U9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+IDxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg1LjY4LDEwNCkiIGQ9Ik0yMS4xOSwtMTQuMzIgTDE2Ljc1LC0wLjAwIEwxMy42MywtMC4wMCBMMTAuNzQsLTEwLjU4IEw3Ljg1LC0wLjAwIEw0LjczLC0wLjAwIEwwLjI2LC0xNC4zMiBMMy4yNywtMTQuMzIgTDYuMjYsLTIuODEgTDkuMzEsLTE0LjMyIEwxMi40MCwtMTQuMzIgTDE1LjMyLC0yLjg2IEwxOC4yOCwtMTQuMzIgTDIxLjE5LC0xNC4zMiBaIi8+IDxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwNi44MywxMDcpIiBkPSJNMC41NCwtNy41MCBMMC41NCwtOC43NSBMMy4wNCwtOC43NSBMMy4wNCwtMC4wMCBMMS42NiwtMC4wMCBMMS42NiwtNy41MCBMMC41NCwtNy41MCBaIE00Ljc0LC03LjUwIEw0Ljc0LC04Ljc1IEw3LjI0LC04Ljc1IEw3LjI0LC0wLjAwIEw1Ljg2LC0wLjAwIEw1Ljg2LC03LjUwIEw0Ljc0LC03LjUwIFoiLz4gPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIzLjk3LDEwNCkiIGQ9Ik0yMS4xOSwtMTQuMzIgTDE2Ljc1LC0wLjAwIEwxMy42MywtMC4wMCBMMTAuNzQsLTEwLjU4IEw3Ljg1LC0wLjAwIEw0LjczLC0wLjAwIEwwLjI2LC0xNC4zMiBMMy4yNywtMTQuMzIgTDYuMjYsLTIuODEgTDkuMzEsLTE0LjMyIEwxMi40MCwtMTQuMzIgTDE1LjMyLC0yLjg2IEwxOC4yOCwtMTQuMzIgTDIxLjE5LC0xNC4zMiBaIi8+IDxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NS4xMiwxMDcpIiBkPSJNMC41NCwtNy41MCBMMC41NCwtOC43NSBMMy4wNCwtOC43NSBMMy4wNCwtMC4wMCBMMS42NiwtMC4wMCBMMS42NiwtNy41MCBMMC41NCwtNy41MCBaIE01LjY4LC0xLjg2IFE2LjgzLC0yLjg2IDcuNDksLTMuNTAgUTguMTYsLTQuMTQgOC42MCwtNC44NCBROS4wNSwtNS41MyA5LjA1LC02LjIzIFE5LjA1LC02Ljk1IDguNzEsLTcuMzYgUTguMzYsLTcuNzYgNy42MywtNy43NiBRNi45MiwtNy43NiA2LjUzLC03LjMxIFE2LjE0LC02Ljg2IDYuMTIsLTYuMTEgTDQuODAsLTYuMTEgUTQuODQsLTcuNDggNS42MiwtOC4yMCBRNi40MSwtOC45MyA3LjYyLC04LjkzIFE4LjkzLC04LjkzIDkuNjcsLTguMjEgUTEwLjQwLC03LjQ5IDEwLjQwLC02LjI5IFExMC40MCwtNS40MiA5Ljk3LC00LjYzIFE5LjUzLC0zLjgzIDguOTIsLTMuMjAgUTguMzIsLTIuNTcgNy4zOCwtMS43NCBMNi44NCwtMS4yNiBMMTAuNjQsLTEuMjYgTDEwLjY0LC0wLjEyIEw0LjgxLC0wLjEyIEw0LjgxLC0xLjEyIEw1LjY4LC0xLjg2IFoiLz4gPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODQuMzUsMTI4KSIgZD0iTTIxLjE5LC0xNC4zMiBMMTYuNzUsLTAuMDAgTDEzLjYzLC0wLjAwIEwxMC43NCwtMTAuNTggTDcuODUsLTAuMDAgTDQuNzMsLTAuMDAgTDAuMjYsLTE0LjMyIEwzLjI3LC0xNC4zMiBMNi4yNiwtMi44MSBMOS4zMSwtMTQuMzIgTDEyLjQwLC0xNC4zMiBMMTUuMzIsLTIuODYgTDE4LjI4LC0xNC4zMiBMMjEuMTksLTE0LjMyIFoiLz4gPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA1LjQ0LDEzMSkiIGQ9Ik0xLjQ4LC0xLjg2IFEyLjYzLC0yLjg2IDMuMjksLTMuNTAgUTMuOTYsLTQuMTQgNC40MCwtNC44NCBRNC44NSwtNS41MyA0Ljg1LC02LjIzIFE0Ljg1LC02Ljk1IDQuNTEsLTcuMzYgUTQuMTYsLTcuNzYgMy40MywtNy43NiBRMi43MiwtNy43NiAyLjMzLC03LjMxIFExLjk0LC02Ljg2IDEuOTIsLTYuMTEgTDAuNjAsLTYuMTEgUTAuNjQsLTcuNDggMS40MiwtOC4yMCBRMi4yMSwtOC45MyAzLjQyLC04LjkzIFE0LjczLC04LjkzIDUuNDcsLTguMjEgUTYuMjAsLTcuNDkgNi4yMCwtNi4yOSBRNi4yMCwtNS40MiA1Ljc3LC00LjYzIFE1LjMzLC0zLjgzIDQuNzIsLTMuMjAgUTQuMTIsLTIuNTcgMy4xOCwtMS43NCBMMi42NCwtMS4yNiBMNi40NCwtMS4yNiBMNi40NCwtMC4xMiBMMC42MSwtMC4xMiBMMC42MSwtMS4xMiBMMS40OCwtMS44NiBaIE03LjQ2LC03LjUwIEw3LjQ2LC04Ljc1IEw5Ljk2LC04Ljc1IEw5Ljk2LC0wLjAwIEw4LjU4LC0wLjAwIEw4LjU4LC03LjUwIEw3LjQ2LC03LjUwIFoiLz4gPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIyLjY0LDEyOCkiIGQ9Ik0yMS4xOSwtMTQuMzIgTDE2Ljc1LC0wLjAwIEwxMy42MywtMC4wMCBMMTAuNzQsLTEwLjU4IEw3Ljg1LC0wLjAwIEw0LjczLC0wLjAwIEwwLjI2LC0xNC4zMiBMMy4yNywtMTQuMzIgTDYuMjYsLTIuODEgTDkuMzEsLTE0LjMyIEwxMi40MCwtMTQuMzIgTDE1LjMyLC0yLjg2IEwxOC4yOCwtMTQuMzIgTDIxLjE5LC0xNC4zMiBaIi8+IDxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0My43MywxMzEpIiBkPSJNMS40OCwtMS44NiBRMi42MywtMi44NiAzLjI5LC0zLjUwIFEzLjk2LC00LjE0IDQuNDAsLTQuODQgUTQuODUsLTUuNTMgNC44NSwtNi4yMyBRNC44NSwtNi45NSA0LjUxLC03LjM2IFE0LjE2LC03Ljc2IDMuNDMsLTcuNzYgUTIuNzIsLTcuNzYgMi4zMywtNy4zMSBRMS45NCwtNi44NiAxLjkyLC02LjExIEwwLjYwLC02LjExIFEwLjY0LC03LjQ4IDEuNDIsLTguMjAgUTIuMjEsLTguOTMgMy40MiwtOC45MyBRNC43MywtOC45MyA1LjQ3LC04LjIxIFE2LjIwLC03LjQ5IDYuMjAsLTYuMjkgUTYuMjAsLTUuNDIgNS43NywtNC42MyBRNS4zMywtMy44MyA0LjcyLC0zLjIwIFE0LjEyLC0yLjU3IDMuMTgsLTEuNzQgTDIuNjQsLTEuMjYgTDYuNDQsLTEuMjYgTDYuNDQsLTAuMTIgTDAuNjEsLTAuMTIgTDAuNjEsLTEuMTIgTDEuNDgsLTEuODYgWiBNOC40MCwtMS44NiBROS41NSwtMi44NiAxMC4yMiwtMy41MCBRMTAuODgsLTQuMTQgMTEuMzMsLTQuODQgUTExLjc3LC01LjUzIDExLjc3LC02LjIzIFExMS43NywtNi45NSAxMS40MywtNy4zNiBRMTEuMDksLTcuNzYgMTAuMzYsLTcuNzYgUTkuNjUsLTcuNzYgOS4yNiwtNy4zMSBROC44NywtNi44NiA4Ljg0LC02LjExIEw3LjUyLC02LjExIFE3LjU2LC03LjQ4IDguMzUsLTguMjAgUTkuMTMsLTguOTMgMTAuMzQsLTguOTMgUTExLjY1LC04LjkzIDEyLjM5LC04LjIxIFExMy4xMywtNy40OSAxMy4xMywtNi4yOSBRMTMuMTMsLTUuNDIgMTIuNjksLTQuNjMgUTEyLjI1LC0zLjgzIDExLjY1LC0zLjIwIFExMS4wNCwtMi41NyAxMC4xMCwtMS43NCBMOS41NiwtMS4yNiBMMTMuMzcsLTEuMjYgTDEzLjM3LC0wLjEyIEw3LjU0LC0wLjEyIEw3LjU0LC0xLjEyIEw4LjQwLC0xLjg2IFoiLz4gPC9nPiA8Y2lyY2xlIGN4PSIxNzIiIGN5PSIxNjAiIHI9IjIzIiBmaWxsPSIjMTZhMzRhIi8+IDxwYXRoIGQ9Ik0xNjEgMTYxIEwxNjkgMTY5IEwxODUgMTQ5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4gPC9zdmc+">
 <style>
 :root{
  --bg:#000; --surface:#0a0a0a; --surface2:#111; --border:#1f1f1f; --border2:#2a2a2a;
@@ -341,7 +343,8 @@ a{color:inherit;text-decoration:none}
 .side{width:236px;flex:0 0 236px;position:sticky;top:0;height:100vh;display:flex;
  flex-direction:column;background:var(--bg);border-right:1px solid var(--border);padding:18px 12px}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:600;font-size:14px}
-.brand .glyph{width:24px;height:24px;flex:0 0 auto;color:var(--text)}
+.brand .glyph{width:30px;height:30px;flex:0 0 auto;color:var(--text)}
+.brand .glyph svg{width:100%;height:100%;display:block}
 .brand small{display:block;color:var(--dim);font-weight:450;font-size:11px;letter-spacing:.02em}
 .nav{display:flex;flex-direction:column;gap:1px;overflow:auto}
 .navsec{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
@@ -357,8 +360,6 @@ a{color:inherit;text-decoration:none}
 .nav a.active .ic{color:var(--text)}
 .side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);
  display:flex;flex-direction:column;gap:8px}
-.connpill{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:11.5px;padding:2px 8px}
-.cdot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:0 0 auto}
 .foot-row{display:flex;align-items:center;justify-content:space-between;color:var(--dim2);font-size:11px;padding:0 8px}
 .tbtn{cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--dim);
  border-radius:7px;padding:5px 9px;font-size:11.5px;transition:.12s;display:inline-flex;align-items:center;gap:6px}
@@ -372,7 +373,6 @@ a{color:inherit;text-decoration:none}
 .chip{font-size:11.5px;color:var(--dim);background:var(--surface);border:1px solid var(--border);
  border-radius:999px;padding:3px 10px;font-weight:500}
 .spacer{flex:1}
-.upd{color:var(--dim2);font-size:11.5px}
 .ctrls{display:flex;align-items:center;gap:8px}
 .view{padding:22px 26px 64px}
 .lead{color:var(--dim);margin:-2px 0 18px;font-size:13.5px;max-width:780px}
@@ -472,11 +472,10 @@ button.lnk.danger:hover{border-color:var(--bad)}
 </style></head><body>
 <div class=app>
  <aside class=side>
-  <div class=brand><span class=glyph><svg viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=1.6 stroke-linecap=round stroke-linejoin=round><path d="M8 3h8"/><path d="M9 3v3.5a4 4 0 0 1-.7 2.3L7 10.5A4 4 0 0 0 6 13v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6a4 4 0 0 0-1-2.5l-1.3-1.7A4 4 0 0 1 15 6.5V3"/><path d="M6.5 14h11"/></svg></span><div>TokenJam Bench<small>Benchmark &amp; Evaluation</small></div></div>
+  <div class=brand><span class=glyph><svg viewBox="50 30 156 158" fill="none"> <g stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"> <rect x="74" y="44" width="92" height="20" rx="6" ry="6"/> <path d="M 104 72 L 74 72 L 74 152 L 104 152"/> <path d="M 136 72 L 166 72 L 166 152 L 136 152"/> </g> <g fill="currentColor" stroke="none" fill-rule="evenodd"> <path transform="translate(85.68,104)" d="M21.19,-14.32 L16.75,-0.00 L13.63,-0.00 L10.74,-10.58 L7.85,-0.00 L4.73,-0.00 L0.26,-14.32 L3.27,-14.32 L6.26,-2.81 L9.31,-14.32 L12.40,-14.32 L15.32,-2.86 L18.28,-14.32 L21.19,-14.32 Z"/> <path transform="translate(106.83,107)" d="M0.54,-7.50 L0.54,-8.75 L3.04,-8.75 L3.04,-0.00 L1.66,-0.00 L1.66,-7.50 L0.54,-7.50 Z M4.74,-7.50 L4.74,-8.75 L7.24,-8.75 L7.24,-0.00 L5.86,-0.00 L5.86,-7.50 L4.74,-7.50 Z"/> <path transform="translate(123.97,104)" d="M21.19,-14.32 L16.75,-0.00 L13.63,-0.00 L10.74,-10.58 L7.85,-0.00 L4.73,-0.00 L0.26,-14.32 L3.27,-14.32 L6.26,-2.81 L9.31,-14.32 L12.40,-14.32 L15.32,-2.86 L18.28,-14.32 L21.19,-14.32 Z"/> <path transform="translate(145.12,107)" d="M0.54,-7.50 L0.54,-8.75 L3.04,-8.75 L3.04,-0.00 L1.66,-0.00 L1.66,-7.50 L0.54,-7.50 Z M5.68,-1.86 Q6.83,-2.86 7.49,-3.50 Q8.16,-4.14 8.60,-4.84 Q9.05,-5.53 9.05,-6.23 Q9.05,-6.95 8.71,-7.36 Q8.36,-7.76 7.63,-7.76 Q6.92,-7.76 6.53,-7.31 Q6.14,-6.86 6.12,-6.11 L4.80,-6.11 Q4.84,-7.48 5.62,-8.20 Q6.41,-8.93 7.62,-8.93 Q8.93,-8.93 9.67,-8.21 Q10.40,-7.49 10.40,-6.29 Q10.40,-5.42 9.97,-4.63 Q9.53,-3.83 8.92,-3.20 Q8.32,-2.57 7.38,-1.74 L6.84,-1.26 L10.64,-1.26 L10.64,-0.12 L4.81,-0.12 L4.81,-1.12 L5.68,-1.86 Z"/> <path transform="translate(84.35,128)" d="M21.19,-14.32 L16.75,-0.00 L13.63,-0.00 L10.74,-10.58 L7.85,-0.00 L4.73,-0.00 L0.26,-14.32 L3.27,-14.32 L6.26,-2.81 L9.31,-14.32 L12.40,-14.32 L15.32,-2.86 L18.28,-14.32 L21.19,-14.32 Z"/> <path transform="translate(105.44,131)" d="M1.48,-1.86 Q2.63,-2.86 3.29,-3.50 Q3.96,-4.14 4.40,-4.84 Q4.85,-5.53 4.85,-6.23 Q4.85,-6.95 4.51,-7.36 Q4.16,-7.76 3.43,-7.76 Q2.72,-7.76 2.33,-7.31 Q1.94,-6.86 1.92,-6.11 L0.60,-6.11 Q0.64,-7.48 1.42,-8.20 Q2.21,-8.93 3.42,-8.93 Q4.73,-8.93 5.47,-8.21 Q6.20,-7.49 6.20,-6.29 Q6.20,-5.42 5.77,-4.63 Q5.33,-3.83 4.72,-3.20 Q4.12,-2.57 3.18,-1.74 L2.64,-1.26 L6.44,-1.26 L6.44,-0.12 L0.61,-0.12 L0.61,-1.12 L1.48,-1.86 Z M7.46,-7.50 L7.46,-8.75 L9.96,-8.75 L9.96,-0.00 L8.58,-0.00 L8.58,-7.50 L7.46,-7.50 Z"/> <path transform="translate(122.64,128)" d="M21.19,-14.32 L16.75,-0.00 L13.63,-0.00 L10.74,-10.58 L7.85,-0.00 L4.73,-0.00 L0.26,-14.32 L3.27,-14.32 L6.26,-2.81 L9.31,-14.32 L12.40,-14.32 L15.32,-2.86 L18.28,-14.32 L21.19,-14.32 Z"/> <path transform="translate(143.73,131)" d="M1.48,-1.86 Q2.63,-2.86 3.29,-3.50 Q3.96,-4.14 4.40,-4.84 Q4.85,-5.53 4.85,-6.23 Q4.85,-6.95 4.51,-7.36 Q4.16,-7.76 3.43,-7.76 Q2.72,-7.76 2.33,-7.31 Q1.94,-6.86 1.92,-6.11 L0.60,-6.11 Q0.64,-7.48 1.42,-8.20 Q2.21,-8.93 3.42,-8.93 Q4.73,-8.93 5.47,-8.21 Q6.20,-7.49 6.20,-6.29 Q6.20,-5.42 5.77,-4.63 Q5.33,-3.83 4.72,-3.20 Q4.12,-2.57 3.18,-1.74 L2.64,-1.26 L6.44,-1.26 L6.44,-0.12 L0.61,-0.12 L0.61,-1.12 L1.48,-1.86 Z M8.40,-1.86 Q9.55,-2.86 10.22,-3.50 Q10.88,-4.14 11.33,-4.84 Q11.77,-5.53 11.77,-6.23 Q11.77,-6.95 11.43,-7.36 Q11.09,-7.76 10.36,-7.76 Q9.65,-7.76 9.26,-7.31 Q8.87,-6.86 8.84,-6.11 L7.52,-6.11 Q7.56,-7.48 8.35,-8.20 Q9.13,-8.93 10.34,-8.93 Q11.65,-8.93 12.39,-8.21 Q13.13,-7.49 13.13,-6.29 Q13.13,-5.42 12.69,-4.63 Q12.25,-3.83 11.65,-3.20 Q11.04,-2.57 10.10,-1.74 L9.56,-1.26 L13.37,-1.26 L13.37,-0.12 L7.54,-0.12 L7.54,-1.12 L8.40,-1.86 Z"/> </g> <circle cx="172" cy="160" r="28" style="fill:var(--bg)"/> <circle cx="172" cy="160" r="23" fill="#16a34a"/> <path d="M161 161 L169 169 L185 149" fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/> </svg></span><div>TokenJam Bench<small>Benchmark &amp; Evaluate</small></div></div>
   <nav class=nav id=nav></nav>
   <div class=side-foot>
-   <div class=connpill><span class=cdot></span><span id=conn>Local &middot; offline</span></div>
-   <div class=foot-row><span id=ver>tj &middot;&middot;&middot;</span>
+   <div class=foot-row><span id=ver>tjb &middot;&middot;&middot;</span>
     <span class=tbtn id=themeBtn><svg viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=1.8 stroke-linecap=round stroke-linejoin=round><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>Theme</span></div>
   </div>
  </aside>
@@ -485,7 +484,6 @@ button.lnk.danger:hover{border-color:var(--bad)}
    <h1 id=title>Overview</h1>
    <span class=chip id=ctxchip></span>
    <div class=spacer></div>
-   <span class=upd id=updated>live</span>
    <div class=ctrls id=ctrls></div>
   </header>
   <section class=view id=view><div class=empty>loading&hellip;</div></section>
@@ -652,7 +650,7 @@ async function pgOverview(){
  // status banner (honest, from real verdicts)
  let banner;
  if(anyReg)banner='<div class="banner bad"><div class=bi>'+BI.bad+'</div><div><b>Significant regression detected.</b>'+
-   '<div class=bsub>'+held.length+' config'+(held.length===1?"":"s")+' show a statistically significant pass-rate drop. See the Regression Center.</div></div></div>';
+   '<div class=bsub>'+held.length+' config'+(held.length===1?' shows':'s show')+' a statistically significant pass-rate drop. See the Regression Center.</div></div></div>';
  else banner='<div class="banner ok"><div class=bi>'+BI.ok+'</div><div><b>No significant regression.</b>'+
    '<div class=bsub>Every measured config is within statistical noise of its original on the benchmarks run so far.</div></div></div>';
  // measured-cost stat row (no extrapolation, no "money saved")
@@ -680,7 +678,7 @@ async function pgOverview(){
    '<div class=mono style="font-size:11.5px;color:var(--dim)">'+esc(modelOf(r.original_model))+" → "+esc(modelOf(r.candidate_model))+'</div></div>'+
    '<div style="text-align:right">'+badge(r.verdict)+'<div class=muted style="font-size:11px;margin-top:4px">'+accDelta(r.accuracy_delta_pp)+(r.mcnemar_p!=null?" · p="+Number(r.mcnemar_p).toFixed(3):"")+'</div></div></div>').join("")
    :'<div class=muted style="font-size:13px">None. Every cheaper candidate cleared its regression test on this workload &mdash; a switch is held the moment one does not.</div>';
- M().innerHTML='<p class=lead>The trust layer for TokenJam. Every figure is a measured benchmark with a hedged statistical verdict (Wilson CI + McNemar p), never a bare "safe".</p>'+
+ M().innerHTML='<p class=lead>The trust layer for TokenJam. Every figure is a measured benchmark with a hedged verdict, never a bare "safe".</p>'+
   banner+
   '<div class="grid g4" style="margin-top:16px">'+cards+'</div>'+
   (anyDefault?'<div class=note>'+BI.info+'<span>Some runs were priced with TokenJam default placeholder rates &mdash; those cost figures are flagged on their cards.</span></div>':"")+
@@ -827,13 +825,11 @@ async function delReport(file){
 }
 async function pgSettings(){
  const [hist,info]=await Promise.all([getJSON("/api/history"),getJSON("/api/info")]);
- const refresh=PREF.get("refresh","4");const theme=PREF.get("theme","dark");
+ const theme=PREF.get("theme","dark");
  M().innerHTML='<p class=lead>Dashboard preferences. Stored locally in your browser &mdash; nothing is sent anywhere.</p>'+
   '<div class=card>'+
    '<div class=set-row><div><div class=k>Theme</div><div class=d>dark or light appearance</div></div>'+
     '<select id=setTheme>'+["dark","light"].map(t=>'<option '+(t===theme?"selected":"")+'>'+t+'</option>').join("")+'</select></div>'+
-   '<div class=set-row><div><div class=k>Auto-refresh</div><div class=d>Overview live-poll interval (seconds)</div></div>'+
-    '<select id=setRefresh>'+["2","4","8","15","30","0"].map(s=>'<option '+(s===refresh?"selected":"")+'>'+(s==="0"?"off":s)+'</option>').join("")+'</select></div>'+
    '<div class=set-row><div><div class=k>Serving directory</div><div class=d>where proof artifacts and reports are read from</div></div>'+
     '<span class=mono>'+esc((info&&info.directory)||"—")+'</span></div>'+
    '<div class=set-row><div><div class=k>History database</div><div class=d>'+(hist&&hist.available?(hist.count+" runs · "+((hist.versions||[]).length)+" versions"):"not created yet")+'</div></div>'+
@@ -842,7 +838,6 @@ async function pgSettings(){
     '<span class="badge b-mut">manual</span></div>'+
   '</div>';
  document.getElementById("setTheme").onchange=e=>{PREF.set("theme",e.target.value);applyTheme();};
- document.getElementById("setRefresh").onchange=e=>{PREF.set("refresh",e.target.value==="off"?"0":e.target.value);startTimer();};
 }
 // ---- data-starved pages (surfaced by the nav only when populated) ----------
 async function pgReplay(){
@@ -930,7 +925,6 @@ async function pgVersions(){
 const PAGES={overview:pgOverview,benchmarks:pgBenchmarks,leaderboards:pgLeaderboards,scenarios:pgScenarios,
  regressions:pgRegressions,reports:pgReports,settings:pgSettings,
  replay:pgReplay,deepeval:pgDeepEval,trends:pgTrends,versions:pgVersions};
-const AUTO=new Set(["overview","replay"]);
 let VISIBLE=new Set(["overview","benchmarks","leaderboards","regressions","reports","settings"]);
 async function computeVisible(){
  const [runs,scen,vsum,hist]=await Promise.all([loadRuns(),getJSON("/api/scenarios"),
@@ -957,30 +951,30 @@ async function route(){
  const v=curView();markNav(v);
  document.getElementById("title").textContent=LABEL[v];
  try{await PAGES[v]();}catch(e){M().innerHTML='<div class=empty>error loading view</div>';}
- setCtx();document.getElementById("updated").textContent="updated "+new Date().toLocaleTimeString();
+ setCtx();
 }
 async function setCtx(){
+ // Header chip shows the tokenjam dependency version under test (the legit
+ // "under-test dep" version). The footer shows the bench's own package version.
  const hist=await getJSON("/api/history");
  const ver=(hist&&hist.versions&&hist.versions.slice(-1)[0])||"";
  document.getElementById("ctxchip").textContent=ver?("tokenjam "+ver):(hist&&hist.count?hist.count+" runs":"");
- const vEl=document.getElementById("ver");if(vEl&&ver)vEl.textContent="tj "+ver;
 }
-async function setConn(){const info=await getJSON("/api/info");const el=document.getElementById("conn");
- if(el&&info&&info.directory){const parts=info.directory.split("/");el.textContent="Local · "+(parts[parts.length-1]||info.directory);}}
-// ---- theme + timer ---------------------------------------------------------
+async function setConn(){const info=await getJSON("/api/info");
+ const v=document.getElementById("ver");if(v&&info&&info.version)v.textContent="tjb "+info.version;}
+// ---- theme -----------------------------------------------------------------
+// No live-poll timer: this is a static evidence dashboard, so it never implies
+// realtime data. Recency lives in the per-run dates and the "Latest run" tile.
 function applyTheme(){document.documentElement.setAttribute("data-theme",PREF.get("theme","dark"));}
-let _timer=null;
-function startTimer(){if(_timer)clearInterval(_timer);const s=parseInt(PREF.get("refresh","4"),10);
- if(s>0)_timer=setInterval(()=>{if(!document.hidden&&AUTO.has(curView()))route();},s*1000);}
 document.getElementById("themeBtn").onclick=()=>{PREF.set("theme",PREF.get("theme","dark")==="dark"?"light":"dark");applyTheme();};
 window.addEventListener("hashchange",route);
-async function boot(){applyTheme();await computeVisible();buildNav();setConn();await route();startTimer();}
+async function boot(){applyTheme();await computeVisible();buildNav();setConn();await route();}
 boot();
 </script>
 </body></html>"""
 
-# The keep-alive timer in the SPA re-renders only AUTO pages (Overview / Replay)
-# so interactive table sort + search state on the other pages survives the live
-# poll — mirroring TokenJam Lens's asymmetric refresh. Data-starved pages
-# (DeepEval / Trends / Version Comparison / Replay) are hidden from the nav until
-# a real run populates them; nothing is ever fabricated to fill a page.
+# The SPA has no live-poll timer: this is a static evidence dashboard, so it
+# never implies realtime data it doesn't have. Recency is conveyed by the
+# per-run dates and the "Latest run" tile, not a ticking clock. Data-starved
+# pages (DeepEval / Trends / Version Comparison / Replay) are hidden from the nav
+# until a real run populates them; nothing is ever fabricated to fill a page.

@@ -73,7 +73,10 @@ def test_dashboard_html_is_offline():
     # No render-time external resources (offline-first, like TokenJam Lens).
     for bad in ("http://", "https://", "src=", "cdn", "googleapis"):
         assert bad not in html
-    # It polls the local API for realtime updates.
-    assert "/api/runs" in html and "setInterval" in html
+    # It reads from the local API.
+    assert "/api/runs" in html
+    # Static evidence dashboard: no live-poll clock that would imply realtime
+    # data it doesn't have.
+    assert "setInterval" not in html
     # ...and draws an inline-SVG accuracy/cost trend (no charting lib).
     assert "drawChart" in html and "chartbox" in html and "polyline" in html

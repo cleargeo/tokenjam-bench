@@ -1,12 +1,12 @@
 <div align="center">
 
 <picture>
-  <img src="docs/brand/tokenjam-bench.png" alt="TokenJam Bench" width="420">
+  <img src="docs/brand/tokenjam-bench-banner.png" alt="TokenJam Bench" width="420">
 </picture>
 
-## Evidence-based LLM benchmarking
+## Evidence-based Benchmarking & Evaluations for Agents & LLMs
 
-Does TokenJam's "downsize this model" recommendation hold up? This runs the cheaper model against executable benchmarks and tells you, with statistics, where it keeps up and where it breaks.
+Does TokenJam's "downsize this model" recommendation hold up? TokenJam Bench runs the cheaper model against executable benchmarks and tells you (with statistics) where it keeps up and where it breaks and validates if the savings are true.
 
 [![CI](https://github.com/Metabuilder-Labs/tokenjam-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/Metabuilder-Labs/tokenjam-bench/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen?labelColor=0d1117)](tests/)
@@ -15,12 +15,12 @@ Does TokenJam's "downsize this model" recommendation hold up? This runs the chea
 [![License: MIT](https://img.shields.io/badge/license-MIT-3d8eff?labelColor=0d1117)](LICENSE)
 
 ```bash
-pip install -e .
-tjb run          # zero-flag offline proof — writes a stamped artifact
-tjb serve        # browse the bundled real evidence in the dashboard
+pipx install tokenjam-bench
 ```
 
-**No cloud · No signup · Offline-first**
+<sub>Don't have pipx? `brew install pipx` on macOS, `apt install pipx` on Debian/Ubuntu. `pip install tokenjam-bench` also works in a clean venv.</sub>
+
+**No cloud · No signup · Runs Locally**
 
 </div>
 
